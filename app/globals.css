@@ -164,6 +164,11 @@ textarea {
   white-space: nowrap;
 }
 
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
 .button-primary {
   background: var(--accent);
   color: white;
@@ -388,7 +393,7 @@ textarea {
 .editor-card {
   grid-area: editor;
   display: grid;
-  grid-template-rows: auto minmax(560px, 1fr) auto;
+  grid-template-rows: auto minmax(440px, 1fr) auto auto;
   overflow: hidden;
 }
 
@@ -418,7 +423,7 @@ textarea {
 }
 
 .monaco-shell {
-  min-height: 560px;
+  min-height: 440px;
   border-radius: 0;
   padding: 0;
   overflow: hidden;
@@ -430,7 +435,7 @@ textarea {
 }
 
 .monaco-editor-frame {
-  min-height: 510px;
+  min-height: 390px;
   height: 100%;
   overflow: hidden;
 }
@@ -442,6 +447,162 @@ textarea {
   padding: 14px 16px;
   border-top: 1px solid var(--line);
   background: #fbfcfe;
+}
+
+.spin-icon {
+  animation: spin 0.9s linear infinite;
+}
+
+.execution-console {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-top: 1px solid var(--line);
+  background: #f8fafc;
+}
+
+.execution-console-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.execution-console-header h3 {
+  margin: 0 0 2px;
+  font-size: 15px;
+}
+
+.execution-console-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pill-failed {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+.console-notice {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.console-notice.warning {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  color: var(--warn);
+}
+
+.test-results-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.test-result-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: white;
+}
+
+.test-result-card.passed {
+  border-color: rgba(15, 118, 110, 0.28);
+}
+
+.test-result-card.failed {
+  border-color: rgba(180, 35, 24, 0.32);
+}
+
+.test-result-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.test-result-header div {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.test-result-card.passed svg {
+  color: var(--accent);
+}
+
+.test-result-card.failed svg,
+.test-error {
+  color: var(--danger);
+}
+
+.test-result-header span,
+.test-result-details dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.test-result-details {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.test-result-details div {
+  display: grid;
+  gap: 3px;
+}
+
+.test-result-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+}
+
+.test-error {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stdout-block {
+  display: grid;
+  gap: 6px;
+}
+
+.stdout-block span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.stdout-block pre {
+  min-height: 52px;
+  max-height: 140px;
+  margin: 0;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--code);
+  color: #d1d5db;
+  padding: 12px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
 }
 
 .interview-support-rail {
@@ -735,15 +896,15 @@ textarea {
   }
 
   .editor-card {
-    grid-template-rows: auto minmax(480px, 1fr) auto;
+    grid-template-rows: auto minmax(420px, 1fr) auto auto;
   }
 
   .monaco-shell {
-    min-height: 480px;
+    min-height: 420px;
   }
 
   .monaco-editor-frame {
-    min-height: 430px;
+    min-height: 370px;
   }
 
   .page-header {
@@ -791,5 +952,11 @@ textarea {
     position: static;
     width: 100%;
     margin-top: 10px;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
