@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { AlertTriangle, CheckCircle2, Loader2, Play, SendHorizontal, XCircle } from "lucide-react";
 import type { CodeRunResponse, CodeTestResult } from "@/types/code-execution";
@@ -10,6 +10,12 @@ type LanguageOption = {
   monacoLanguage: string;
   fileName: string;
   starterCode: string;
+};
+
+type CodeEditorPanelProps = {
+  onCodeChange?: (code: string) => void;
+  onLanguageChange?: (language: LanguageOption["label"]) => void;
+  onRunResult?: (result: CodeRunResponse | null) => void;
 };
 
 const languages: LanguageOption[] = [
@@ -101,7 +107,11 @@ vector<int> twoSum(vector<int>& nums, int target) {
   }
 ];
 
-export function CodeEditorPanel() {
+export function CodeEditorPanel({
+  onCodeChange,
+  onLanguageChange,
+  onRunResult
+}: CodeEditorPanelProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption["label"]>("Python");
   const activeLanguage = useMemo(
     () => languages.find((language) => language.label === selectedLanguage) ?? languages[3],
@@ -114,10 +124,30 @@ export function CodeEditorPanel() {
   const [isRunning, setIsRunning] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
 
+  useEffect(() => {
+    onLanguageChange?.(selectedLanguage);
+    onCodeChange?.(codeByLanguage[selectedLanguage]);
+  }, [codeByLanguage, onCodeChange, onLanguageChange, selectedLanguage]);
+
+  function selectLanguage(language: LanguageOption["label"]) {
+    setSelectedLanguage(language);
+    onLanguageChange?.(language);
+    onCodeChange?.(codeByLanguage[language]);
+  }
+
+  function updateCode(value: string) {
+    setCodeByLanguage((current) => ({
+      ...current,
+      [activeLanguage.label]: value
+    }));
+    onCodeChange?.(value);
+  }
+
   async function runCode() {
     setIsRunning(true);
     setRunError(null);
     setRunResult(null);
+    onRunResult?.(null);
 
     try {
       const response = await fetch("/api/code/run", {
@@ -137,7 +167,9 @@ export function CodeEditorPanel() {
         return;
       }
 
-      setRunResult(payload as CodeRunResponse);
+      const result = payload as CodeRunResponse;
+      setRunResult(result);
+      onRunResult?.(result);
     } catch {
       setRunError("Could not reach the code execution service.");
     } finally {
@@ -159,9 +191,7 @@ export function CodeEditorPanel() {
           <span>Language</span>
           <select
             aria-label="Select coding language"
-            onChange={(event) =>
-              setSelectedLanguage(event.target.value as LanguageOption["label"])
-            }
+            onChange={(event) => selectLanguage(event.target.value as LanguageOption["label"])}
             value={selectedLanguage}
           >
             {languages.map((language) => (
@@ -184,12 +214,7 @@ export function CodeEditorPanel() {
           <Editor
             height="100%"
             language={activeLanguage.monacoLanguage}
-            onChange={(value) =>
-              setCodeByLanguage((current) => ({
-                ...current,
-                [activeLanguage.label]: value ?? ""
-              }))
-            }
+            onChange={(value) => updateCode(value ?? "")}
             options={{
               automaticLayout: true,
               fontFamily: "SFMono-Regular, Consolas, Liberation Mono, monospace",

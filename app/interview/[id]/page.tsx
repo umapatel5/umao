@@ -1,11 +1,8 @@
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { CodeEditorPanel } from "@/components/CodeEditorPanel";
-import { InterviewerPanel } from "@/components/InterviewerPanel";
+import { InterviewWorkspace } from "@/components/InterviewWorkspace";
 import { PageHeader } from "@/components/PageHeader";
-import { ProblemPanel } from "@/components/ProblemPanel";
-import { TranscriptPanel } from "@/components/TranscriptPanel";
 import { sessions } from "@/lib/interview-data";
 
 type InterviewPageProps = {
@@ -31,14 +28,7 @@ export default function InterviewPage({ params }: InterviewPageProps) {
         }
       />
 
-      <div className="technical-interview-layout">
-        <ProblemPanel />
-        <CodeEditorPanel />
-        <aside className="interview-support-rail">
-          <InterviewerPanel />
-          <TranscriptPanel />
-        </aside>
-      </div>
+      <InterviewWorkspace />
     </AppShell>
   );
 }

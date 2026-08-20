@@ -1,6 +1,28 @@
-import { Bot, Camera, UserRound } from "lucide-react";
+import { Camera, UserRound } from "lucide-react";
+import { InterviewerAvatar } from "@/components/InterviewerAvatar";
+import { TavusAvatarFrame } from "@/components/TavusAvatarFrame";
+import { getAvatarPlaybackLabel, getAvatarStateView } from "@/lib/avatar/interviewer-avatar";
+import type { AvatarPlaybackSnapshot, InterviewerAvatarState, TavusAvatarSession } from "@/types/avatar";
+import type { InterviewMessage } from "@/types/interviewer";
 
-export function InterviewerPanel() {
+type InterviewerPanelProps = {
+  avatarPlayback: AvatarPlaybackSnapshot;
+  avatarState: InterviewerAvatarState;
+  latestInterviewerMessage: InterviewMessage | null;
+  onAvatarPlaybackChange: (snapshot: AvatarPlaybackSnapshot) => void;
+  tavusSession: TavusAvatarSession;
+};
+
+export function InterviewerPanel({
+  avatarPlayback,
+  avatarState,
+  latestInterviewerMessage,
+  onAvatarPlaybackChange,
+  tavusSession
+}: InterviewerPanelProps) {
+  const stateView = getAvatarStateView(avatarState);
+  const isTavusActive = tavusSession.status === "active" && tavusSession.conversationUrl;
+
   return (
     <section className="card panel interview-support-card" aria-labelledby="interviewer-title">
       <div className="side-panel-header compact-panel-header">
@@ -8,19 +30,21 @@ export function InterviewerPanel() {
           <h2 className="section-title" id="interviewer-title">
             AI interviewer
           </h2>
-          <div className="meta">Video and AI are placeholders for now</div>
+          <div className="meta">Local avatar preview</div>
         </div>
-        <span className="pill">Offline</span>
+        <span className={`pill avatar-pill ${avatarState}`}>{stateView.label}</span>
       </div>
 
       <div className="video-stage">
-        <div className="interviewer-video">
-          <Bot aria-hidden size={34} />
-          <div>
-            <strong>AI interviewer</strong>
-            <span>Future avatar or video stream</span>
-          </div>
-        </div>
+        {isTavusActive ? (
+          <TavusAvatarFrame
+            echoMessage={latestInterviewerMessage}
+            onPlaybackChange={onAvatarPlaybackChange}
+            session={tavusSession}
+          />
+        ) : (
+          <InterviewerAvatar playback={avatarPlayback} state={avatarState} />
+        )}
 
         <div className="user-webcam-tile">
           <UserRound aria-hidden size={22} />
@@ -36,8 +60,39 @@ export function InterviewerPanel() {
           <Camera aria-hidden size={15} />
           Camera not connected
         </span>
-        <span>AI feedback paused</span>
+        <span>
+          {getMediaStatus({
+            avatarPlayback,
+            fallbackText: stateView.helperText,
+            tavusSession
+          })}
+        </span>
       </div>
+      {tavusSession.reason ? <div className="avatar-provider-note">{tavusSession.reason}</div> : null}
     </section>
   );
+}
+
+function getMediaStatus({
+  avatarPlayback,
+  fallbackText,
+  tavusSession
+}: {
+  avatarPlayback: AvatarPlaybackSnapshot;
+  fallbackText: string;
+  tavusSession: TavusAvatarSession;
+}) {
+  if (tavusSession.status === "loading") {
+    return "Connecting Tavus avatar...";
+  }
+
+  if (tavusSession.status === "active") {
+    return avatarPlayback.status === "idle" ? "Tavus avatar connected" : getAvatarPlaybackLabel(avatarPlayback);
+  }
+
+  if (avatarPlayback.status !== "idle") {
+    return getAvatarPlaybackLabel(avatarPlayback);
+  }
+
+  return fallbackText;
 }

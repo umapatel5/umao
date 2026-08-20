@@ -47,6 +47,18 @@ textarea {
   font: inherit;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .app-shell {
   min-height: 100vh;
   display: grid;
@@ -625,18 +637,184 @@ textarea {
   position: relative;
 }
 
-.interviewer-video {
-  min-height: 190px;
+.interviewer-avatar-frame {
+  position: relative;
+  min-height: 245px;
   border-radius: 8px;
   background:
-    linear-gradient(135deg, rgba(15, 118, 110, 0.2), rgba(24, 33, 47, 0.06)),
-    #eef2f6;
-  border: 1px solid var(--line);
+    linear-gradient(180deg, rgba(17, 24, 39, 0.02), rgba(17, 24, 39, 0.72)),
+    #dce5ea;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+.avatar-portrait-shell {
+  position: absolute;
+  inset: 0;
+}
+
+.avatar-portrait {
+  object-fit: cover;
+  object-position: center 38%;
+}
+
+.avatar-video-light {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(17, 24, 39, 0.64)),
+    radial-gradient(circle at 52% 34%, rgba(255, 255, 255, 0.22), transparent 34%);
+  pointer-events: none;
+}
+
+.avatar-state-card {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  width: min(230px, calc(100% - 206px));
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(17, 24, 39, 0.82);
+  color: white;
+  box-shadow: 0 14px 32px rgba(17, 24, 39, 0.22);
+  backdrop-filter: blur(10px);
+}
+
+.avatar-state-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
-  gap: 12px;
-  padding: 18px;
-  text-align: center;
+  background: rgba(255, 255, 255, 0.12);
+  color: #99f6e4;
+}
+
+.avatar-state-card strong,
+.avatar-state-card span {
+  display: block;
+}
+
+.avatar-state-card strong {
+  line-height: 1.15;
+}
+
+.avatar-state-card span {
+  color: #d1d5db;
+  font-size: 12px;
+}
+
+.avatar-lip-sync-track {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 118px;
+  height: 34px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(17, 24, 39, 0.76);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.avatar-mouth-cue {
+  width: 24px;
+  height: 12px;
+  border: 2px solid #5eead4;
+  border-radius: 999px;
+  background: rgba(94, 234, 212, 0.2);
+  transform: scaleY(calc(0.34 + var(--mouth-open, 0) * 1.35));
+  transform-origin: center;
+  transition:
+    border-radius 0.08s linear,
+    transform 0.08s linear,
+    width 0.08s linear;
+}
+
+.avatar-lip-sync-track.round .avatar-mouth-cue {
+  width: 16px;
+  border-radius: 999px;
+}
+
+.avatar-lip-sync-track.narrow .avatar-mouth-cue {
+  width: 30px;
+  border-radius: 999px;
+}
+
+.avatar-lip-sync-track.wide .avatar-mouth-cue {
+  width: 34px;
+  border-radius: 10px;
+}
+
+.avatar-mouth-label {
+  color: #d1d5db;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.interviewer-avatar-frame.avatar-playback-playing .avatar-lip-sync-track,
+.interviewer-avatar-frame.avatar-playback-loading .avatar-lip-sync-track,
+.interviewer-avatar-frame.thinking .avatar-lip-sync-track {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.interviewer-avatar-frame.avatar-playback-loading .avatar-mouth-cue,
+.interviewer-avatar-frame.thinking .avatar-mouth-cue {
+  animation: thinking-bars 1.1s ease-in-out infinite;
+}
+
+.interviewer-avatar-frame.listening {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 0 0 4px rgba(15, 118, 110, 0.12);
+}
+
+.interviewer-avatar-frame.speaking {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 0 0 4px rgba(15, 118, 110, 0.18);
+}
+
+.tavus-avatar-frame {
+  min-height: 245px;
+  border-radius: 8px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: #111827;
+  overflow: hidden;
+}
+
+.tavus-avatar-iframe {
+  display: block;
+  width: 100%;
+  min-height: 245px;
+  border: 0;
+  background: #111827;
+}
+
+.avatar-pill.listening,
+.avatar-pill.speaking {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.avatar-pill.thinking {
+  background: #e0e7ff;
+  color: #3730a3;
 }
 
 .user-webcam-tile {
@@ -657,22 +835,15 @@ textarea {
   box-shadow: 0 12px 28px rgba(17, 24, 39, 0.18);
 }
 
-.interviewer-video svg {
-  color: var(--accent-strong);
-}
-
 .user-webcam-tile svg {
   color: #99f6e4;
 }
 
-.interviewer-video strong,
-.interviewer-video span,
 .user-webcam-tile strong,
 .user-webcam-tile span {
   display: block;
 }
 
-.interviewer-video span,
 .user-webcam-tile span {
   color: var(--muted);
   font-size: 13px;
@@ -698,6 +869,17 @@ textarea {
   gap: 6px;
 }
 
+.avatar-provider-note {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .transcript-list {
   display: grid;
   gap: 10px;
@@ -712,6 +894,19 @@ textarea {
   border: 1px solid var(--line);
 }
 
+.transcript-line.interviewer {
+  background: #ecfdf5;
+  border-color: rgba(15, 118, 110, 0.24);
+}
+
+.transcript-line.candidate {
+  background: white;
+}
+
+.transcript-line.system {
+  background: #eef2f6;
+}
+
 .transcript-speaker-row {
   display: flex;
   justify-content: space-between;
@@ -723,6 +918,124 @@ textarea {
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
+}
+
+.interviewer-speech-controls {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.speech-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.speech-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.speech-status.speaking {
+  color: var(--accent-strong);
+}
+
+.speech-buttons {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.transcript-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.transcript-input-row input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--ink);
+  background: white;
+}
+
+.transcript-input-row input:focus {
+  border-color: var(--accent);
+  outline: 3px solid rgba(15, 118, 110, 0.14);
+}
+
+.voice-input-control {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+
+.voice-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.recording-button {
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+}
+
+.voice-status {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.voice-status.listening {
+  color: var(--accent-strong);
+  font-weight: 800;
+}
+
+.voice-preview {
+  padding: 10px;
+  border-radius: 8px;
+  background: white;
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.hint-action {
+  width: 100%;
+  margin-top: 10px;
 }
 
 .workspace {
@@ -925,13 +1238,17 @@ textarea {
   .session-row,
   .media-grid,
   .problem-meta-grid,
-  .editor-actions {
+  .editor-actions,
+  .transcript-input-row,
+  .voice-actions {
     grid-template-columns: 1fr;
   }
 
   .toolbar,
   .session-row,
-  .editor-actions {
+  .editor-actions,
+  .transcript-input-row,
+  .voice-actions {
     display: grid;
   }
 
@@ -953,10 +1270,34 @@ textarea {
     width: 100%;
     margin-top: 10px;
   }
+
+  .interviewer-avatar-frame {
+    min-height: 220px;
+  }
+
+  .tavus-avatar-frame,
+  .tavus-avatar-iframe {
+    min-height: 220px;
+  }
+
+  .avatar-state-card {
+    width: calc(100% - 24px);
+  }
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes thinking-bars {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
   }
 }

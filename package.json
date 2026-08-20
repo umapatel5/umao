@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@daily-co/daily-js": "^0.92.0",
     "@monaco-editor/react": "^4.7.0",
     "lucide-react": "^0.468.0",
     "next": "^14.2.5",
