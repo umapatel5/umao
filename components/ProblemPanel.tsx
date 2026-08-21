@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock3, ListChecks } from "lucide-react";
+import { Bookmark, CheckCircle2, Clock3, ListChecks } from "lucide-react";
 import { codingProblem } from "@/lib/coding-problem";
 
 type ProblemPanelProps = {
@@ -10,12 +10,20 @@ export function ProblemPanel({ problem = codingProblem }: ProblemPanelProps) {
     <section className="card problem-panel" aria-labelledby="problem-title">
       <div className="problem-header">
         <div>
-          <p className="page-kicker">Hardcoded practice problem</p>
+          <p className="page-kicker">Current problem</p>
           <h2 className="problem-title" id="problem-title">
             {problem.title}
           </h2>
+          <div className="problem-tags">
+            {problem.topics.map((topic) => (
+              <span key={topic}>{topic}</span>
+            ))}
+          </div>
         </div>
-        <span className="pill pill-ready">{problem.difficulty}</span>
+        <div className="problem-header-actions">
+          <span className="pill pill-danger">{problem.difficulty}</span>
+          <Bookmark aria-hidden size={19} />
+        </div>
       </div>
 
       <div className="problem-body">

@@ -6,6 +6,7 @@ import { InterviewerSpeechControls } from "@/components/InterviewerSpeechControl
 import { VoiceInputControl } from "@/components/VoiceInputControl";
 import type { SpeechPlaybackStatus } from "@/lib/speech/interviewer-speech";
 import type { AvatarPlaybackSnapshot } from "@/types/avatar";
+import type { SpeakingMetrics } from "@/types/candidate-analysis";
 import type { InterviewMessage } from "@/types/interviewer";
 
 type TranscriptPanelProps = {
@@ -15,8 +16,9 @@ type TranscriptPanelProps = {
   messages: InterviewMessage[];
   onAvatarPlaybackChange?: (snapshot: AvatarPlaybackSnapshot) => void;
   onSpeechStatusChange?: (status: SpeechPlaybackStatus) => void;
+  onSpeakingMetricsChange?: (metrics: SpeakingMetrics) => void;
   onVoiceListeningChange?: (isListening: boolean) => void;
-  onSendMessage: (message: string) => Promise<void>;
+  onSendMessage: (message: string, options?: { isHintRequest?: boolean }) => Promise<void>;
 };
 
 export function TranscriptPanel({
@@ -26,6 +28,7 @@ export function TranscriptPanel({
   messages,
   onAvatarPlaybackChange,
   onSpeechStatusChange,
+  onSpeakingMetricsChange,
   onVoiceListeningChange,
   onSendMessage
 }: TranscriptPanelProps) {
@@ -50,7 +53,7 @@ export function TranscriptPanel({
       return;
     }
 
-    await onSendMessage("Can I get a small hint?");
+    await onSendMessage("Can I get a small hint?", { isHintRequest: true });
   }
 
   function applyVoiceTranscript(transcript: string) {
@@ -116,6 +119,7 @@ export function TranscriptPanel({
       <VoiceInputControl
         disabled={isThinking}
         onListeningChange={onVoiceListeningChange}
+        onSpeakingMetricsChange={onSpeakingMetricsChange}
         onTranscriptReady={applyVoiceTranscript}
       />
 

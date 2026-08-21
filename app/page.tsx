@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarPlus, PlayCircle } from "lucide-react";
+import { CalendarPlus, History, PlayCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { MetricCard } from "@/components/MetricCard";
 import { PageHeader } from "@/components/PageHeader";
@@ -22,6 +22,10 @@ export default function DashboardPage() {
             <Link className="button button-primary" href="/interview/system-design-lite">
               <PlayCircle aria-hidden size={17} />
               Start practice
+            </Link>
+            <Link className="button button-secondary" href="/history">
+              <History aria-hidden size={17} />
+              View history
             </Link>
           </>
         }

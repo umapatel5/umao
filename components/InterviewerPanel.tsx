@@ -1,8 +1,10 @@
-import { Camera, UserRound } from "lucide-react";
+import { Camera } from "lucide-react";
+import { CandidateWebcamPanel } from "@/components/CandidateWebcamPanel";
 import { InterviewerAvatar } from "@/components/InterviewerAvatar";
 import { TavusAvatarFrame } from "@/components/TavusAvatarFrame";
 import { getAvatarPlaybackLabel, getAvatarStateView } from "@/lib/avatar/interviewer-avatar";
 import type { AvatarPlaybackSnapshot, InterviewerAvatarState, TavusAvatarSession } from "@/types/avatar";
+import type { SpeakingMetrics, WebcamAnalysisMetrics } from "@/types/candidate-analysis";
 import type { InterviewMessage } from "@/types/interviewer";
 
 type InterviewerPanelProps = {
@@ -10,6 +12,8 @@ type InterviewerPanelProps = {
   avatarState: InterviewerAvatarState;
   latestInterviewerMessage: InterviewMessage | null;
   onAvatarPlaybackChange: (snapshot: AvatarPlaybackSnapshot) => void;
+  onWebcamMetricsChange?: (metrics: WebcamAnalysisMetrics) => void;
+  speakingMetrics: SpeakingMetrics;
   tavusSession: TavusAvatarSession;
 };
 
@@ -18,6 +22,8 @@ export function InterviewerPanel({
   avatarState,
   latestInterviewerMessage,
   onAvatarPlaybackChange,
+  onWebcamMetricsChange,
+  speakingMetrics,
   tavusSession
 }: InterviewerPanelProps) {
   const stateView = getAvatarStateView(avatarState);
@@ -46,19 +52,13 @@ export function InterviewerPanel({
           <InterviewerAvatar playback={avatarPlayback} state={avatarState} />
         )}
 
-        <div className="user-webcam-tile">
-          <UserRound aria-hidden size={22} />
-          <div>
-            <strong>User webcam</strong>
-            <span>Preview placeholder</span>
-          </div>
-        </div>
+        <CandidateWebcamPanel onMetricsChange={onWebcamMetricsChange} speakingMetrics={speakingMetrics} />
       </div>
 
       <div className="media-status-row">
         <span>
           <Camera aria-hidden size={15} />
-          Camera not connected
+          Candidate video stays local
         </span>
         <span>
           {getMediaStatus({

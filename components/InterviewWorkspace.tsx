@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CodeEditorPanel } from "@/components/CodeEditorPanel";
 import { InterviewerPanel } from "@/components/InterviewerPanel";
 import { ProblemPanel } from "@/components/ProblemPanel";
@@ -11,8 +12,11 @@ import {
   startTavusAvatarSession
 } from "@/lib/avatar/tavus-client";
 import { codingProblem } from "@/lib/coding-problem";
+import { createInterviewResult, saveInterviewResult } from "@/lib/scoring/interview-result-store";
+import { emptySpeakingMetrics, emptyWebcamMetrics } from "@/lib/webcam/candidate-webcam";
 import type { SpeechPlaybackStatus } from "@/lib/speech/interviewer-speech";
 import type { AvatarPlaybackSnapshot, InterviewerAvatarState, TavusAvatarSession } from "@/types/avatar";
+import type { SpeakingMetrics, WebcamAnalysisMetrics } from "@/types/candidate-analysis";
 import type { CodeRunResponse } from "@/types/code-execution";
 import type { InterviewMessage, InterviewerResponse } from "@/types/interviewer";
 
@@ -47,15 +51,23 @@ const idleTavusSession: TavusAvatarSession = {
   status: "idle"
 };
 
-export function InterviewWorkspace() {
+type InterviewWorkspaceProps = {
+  sessionId: string;
+};
+
+export function InterviewWorkspace({ sessionId }: InterviewWorkspaceProps) {
+  const router = useRouter();
   const [currentCode, setCurrentCode] = useState("");
   const [language, setLanguage] = useState("Python");
   const [latestRun, setLatestRun] = useState<CodeRunResponse | null>(null);
   const [messages, setMessages] = useState<InterviewMessage[]>(initialMessages);
+  const [hintsUsed, setHintsUsed] = useState(0);
   const [isInterviewerThinking, setIsInterviewerThinking] = useState(false);
   const [interviewerError, setInterviewerError] = useState<string | null>(null);
   const [isCandidateListening, setIsCandidateListening] = useState(false);
   const [speechStatus, setSpeechStatus] = useState<SpeechPlaybackStatus>("idle");
+  const [speakingMetrics, setSpeakingMetrics] = useState<SpeakingMetrics>(emptySpeakingMetrics);
+  const [webcamMetrics, setWebcamMetrics] = useState<WebcamAnalysisMetrics>(emptyWebcamMetrics);
   const [latestAvatarEchoMessage, setLatestAvatarEchoMessage] = useState<InterviewMessage | null>(null);
   const [avatarPlayback, setAvatarPlayback] = useState<AvatarPlaybackSnapshot>(() =>
     createIdleAvatarPlayback()
@@ -107,7 +119,11 @@ export function InterviewWorkspace() {
     speechStatus
   });
 
-  async function sendCandidateMessage(text: string) {
+  async function sendCandidateMessage(text: string, options: { isHintRequest?: boolean } = {}) {
+    if (options.isHintRequest) {
+      setHintsUsed((current) => current + 1);
+    }
+
     const candidateMessage: InterviewMessage = {
       id: crypto.randomUUID(),
       role: "candidate",
@@ -157,6 +173,40 @@ export function InterviewWorkspace() {
     }
   }
 
+  async function submitInterview() {
+    const result = createInterviewResult(sessionId, {
+      code: currentCode,
+      hintsUsed,
+      language,
+      latestRun,
+      messages,
+      speakingMetrics,
+      webcamMetrics
+    });
+
+    saveInterviewResult(result);
+
+    try {
+      const response = await fetch("/api/results", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(result)
+      });
+      const payload = (await response.json()) as { result?: { id: string } };
+
+      if (response.ok && payload.result?.id) {
+        router.push(`/results/${payload.result.id}`);
+        return;
+      }
+    } catch {
+      // Temporary browser result still lets users review the interview when offline or logged out.
+    }
+
+    router.push(`/results/${sessionId}`);
+  }
+
   return (
     <div className="technical-interview-layout">
       <ProblemPanel problem={codingProblem} />
@@ -164,6 +214,7 @@ export function InterviewWorkspace() {
         onCodeChange={setCurrentCode}
         onLanguageChange={setLanguage}
         onRunResult={setLatestRun}
+        onSubmitInterview={submitInterview}
       />
       <aside className="interview-support-rail">
         <InterviewerPanel
@@ -171,6 +222,8 @@ export function InterviewWorkspace() {
           avatarState={avatarState}
           latestInterviewerMessage={latestAvatarEchoMessage}
           onAvatarPlaybackChange={setAvatarPlayback}
+          onWebcamMetricsChange={setWebcamMetrics}
+          speakingMetrics={speakingMetrics}
           tavusSession={tavusSession}
         />
         <TranscriptPanel
@@ -181,6 +234,7 @@ export function InterviewWorkspace() {
           onAvatarPlaybackChange={setAvatarPlayback}
           onSpeechStatusChange={setSpeechStatus}
           onSendMessage={sendCandidateMessage}
+          onSpeakingMetricsChange={setSpeakingMetrics}
           onVoiceListeningChange={setIsCandidateListening}
         />
       </aside>

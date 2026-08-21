@@ -16,6 +16,7 @@ type CodeEditorPanelProps = {
   onCodeChange?: (code: string) => void;
   onLanguageChange?: (language: LanguageOption["label"]) => void;
   onRunResult?: (result: CodeRunResponse | null) => void;
+  onSubmitInterview?: () => void;
 };
 
 const languages: LanguageOption[] = [
@@ -110,7 +111,8 @@ vector<int> twoSum(vector<int>& nums, int target) {
 export function CodeEditorPanel({
   onCodeChange,
   onLanguageChange,
-  onRunResult
+  onRunResult,
+  onSubmitInterview
 }: CodeEditorPanelProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption["label"]>("Python");
   const activeLanguage = useMemo(
@@ -241,7 +243,7 @@ export function CodeEditorPanel({
           {isRunning ? <Loader2 aria-hidden className="spin-icon" size={17} /> : <Play aria-hidden size={17} />}
           {isRunning ? "Running" : "Run Code"}
         </button>
-        <button className="button button-primary" type="button">
+        <button className="button button-primary" onClick={onSubmitInterview} type="button">
           <SendHorizontal aria-hidden size={17} />
           Submit
         </button>

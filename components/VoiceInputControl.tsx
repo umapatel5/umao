@@ -2,6 +2,13 @@
 
 import { useRef, useState } from "react";
 import { Mic, MicOff } from "lucide-react";
+import {
+  emptySpeakingMetrics,
+  recordSpeakingPause,
+  recordSpeechActivity,
+  startSpeakingSession
+} from "@/lib/webcam/candidate-webcam";
+import type { SpeakingMetrics } from "@/types/candidate-analysis";
 
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
@@ -43,16 +50,19 @@ type SpeechWindow = Window &
 type VoiceInputControlProps = {
   disabled?: boolean;
   onListeningChange?: (isListening: boolean) => void;
+  onSpeakingMetricsChange?: (metrics: SpeakingMetrics) => void;
   onTranscriptReady: (transcript: string) => void;
 };
 
 export function VoiceInputControl({
   disabled = false,
   onListeningChange,
+  onSpeakingMetricsChange,
   onTranscriptReady
 }: VoiceInputControlProps) {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const finalTranscriptRef = useRef("");
+  const speakingMetricsRef = useRef<SpeakingMetrics>(emptySpeakingMetrics);
   const [error, setError] = useState<string | null>(null);
   const [interimTranscript, setInterimTranscript] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -101,6 +111,7 @@ export function VoiceInputControl({
 
       if (finalText.trim()) {
         finalTranscriptRef.current = `${finalTranscriptRef.current} ${finalText}`.trim();
+        updateSpeakingMetrics(recordSpeechActivity(speakingMetricsRef.current));
       }
 
       setInterimTranscript(interim.trim());
@@ -115,6 +126,7 @@ export function VoiceInputControl({
     recognition.onend = () => {
       setIsListening(false);
       onListeningChange?.(false);
+      updateSpeakingMetrics(recordSpeakingPause(speakingMetricsRef.current));
       const transcript = finalTranscriptRef.current.trim();
 
       if (transcript) {
@@ -124,6 +136,7 @@ export function VoiceInputControl({
 
     recognitionRef.current = recognition;
     recognition.start();
+    updateSpeakingMetrics(startSpeakingSession(speakingMetricsRef.current));
     setIsListening(true);
     onListeningChange?.(true);
   }
@@ -133,6 +146,11 @@ export function VoiceInputControl({
     recognitionRef.current = null;
     setIsListening(false);
     onListeningChange?.(false);
+  }
+
+  function updateSpeakingMetrics(metrics: SpeakingMetrics) {
+    speakingMetricsRef.current = metrics;
+    onSpeakingMetricsChange?.(metrics);
   }
 
   return (

@@ -1,24 +1,25 @@
 import Link from "next/link";
-import { BarChart3, Braces, LayoutDashboard, Settings } from "lucide-react";
+import { BarChart3, Bell, BookOpen, Braces, History, LayoutDashboard, Settings } from "lucide-react";
+import { AuthStatus } from "@/components/AuthStatus";
 
 type AppShellProps = {
   children: React.ReactNode;
-  active: "dashboard" | "interview" | "results";
+  active: "dashboard" | "history" | "interview" | "results";
 };
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
   { href: "/interview/system-design-lite", label: "Interview", icon: Braces, key: "interview" },
+  { href: "/history", label: "History", icon: History, key: "history" },
   { href: "/results/system-design-lite", label: "Results", icon: BarChart3, key: "results" }
 ] as const;
 
 export function AppShell({ children, active }: AppShellProps) {
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      <header className="topbar">
         <Link className="brand" href="/">
-          <span className="brand-mark">IO</span>
-          <span>InterviewOS</span>
+          <span>umao</span>
         </Link>
 
         <nav className="nav" aria-label="Primary navigation">
@@ -37,15 +38,23 @@ export function AppShell({ children, active }: AppShellProps) {
             );
           })}
           <Link href="#">
+            <BookOpen aria-hidden size={18} />
+            Resources
+          </Link>
+          <Link href="#">
             <Settings aria-hidden size={18} />
             Settings
           </Link>
         </nav>
 
-        <div className="sidebar-footer">
-          Architecture placeholders are ready for Monaco, transcription, webcam input, and API routes.
+        <div className="topbar-actions">
+          <span className="streak-pill">12 day streak</span>
+          <button className="icon-button" title="Notifications" type="button">
+            <Bell aria-hidden size={17} />
+          </button>
+          <AuthStatus />
         </div>
-      </aside>
+      </header>
       <main className="main">{children}</main>
     </div>
   );
