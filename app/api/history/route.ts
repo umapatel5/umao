@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/auth-service";
-import { listResultsForUser, summarizeProgress } from "@/lib/results/result-repository";
+import { buildInterviewAnalytics, summarizeProgress } from "@/lib/results/analytics";
+import { listResultsForUser } from "@/lib/results/result-repository";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -12,6 +13,7 @@ export async function GET() {
   const results = await listResultsForUser(user.id);
 
   return NextResponse.json({
+    analytics: buildInterviewAnalytics(results),
     progress: summarizeProgress(results),
     results,
     user

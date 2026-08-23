@@ -8,7 +8,7 @@ import { scoreInterview } from "@/lib/scoring/interview-scoring";
 import { generateQualitativeFeedback } from "@/lib/scoring/qualitative-feedback";
 import { emptySpeakingMetrics, emptyWebcamMetrics } from "@/lib/webcam/candidate-webcam";
 import type { SavedInterviewResult } from "@/types/account";
-import type { InterviewResult } from "@/types/interview-results";
+import type { InterviewResult, InterviewScoringInput } from "@/types/interview-results";
 
 type ResultsReviewProps = {
   sessionId: string;
@@ -175,13 +175,19 @@ function FeedbackSection({
 }
 
 function createFallbackResult(sessionId: string): InterviewResult {
-  const input = {
+  const input: InterviewScoringInput = {
     code: "",
+    difficulty: "Medium",
     hintsUsed: 0,
     language: "Python",
     latestRun: null,
     messages: [],
+    problemId: sessionId,
+    problemTitle: "Practice problem",
+    role: "Software Engineer",
     speakingMetrics: emptySpeakingMetrics,
+    topic: "Arrays",
+    topics: ["Arrays"],
     webcamMetrics: emptyWebcamMetrics
   };
   const scores = scoreInterview(input);
@@ -206,18 +212,28 @@ function createResultFromSaved(result: SavedInterviewResult): InterviewResult {
     },
     input: {
       code: "",
+      difficulty: result.difficulty,
       hintsUsed: 0,
       language: "Python",
       latestRun: null,
       messages: [],
+      problemId: result.sessionId,
+      problemTitle: result.codingProblem,
+      role: result.role,
       speakingMetrics: emptySpeakingMetrics,
+      topic: result.topic,
+      topics: result.topics,
       webcamMetrics: emptyWebcamMetrics
     },
     scores: {
       coding: {
         label: "Coding",
         score: result.codingScore,
-        signals: [`Saved coding score: ${result.codingScore}/100`, `Problem: ${result.codingProblem}`],
+        signals: [
+          `Saved coding score: ${result.codingScore}/100`,
+          `Problem: ${result.codingProblem}`,
+          `Role: ${result.role}`
+        ],
         summary: "Saved from the completed interview result."
       },
       communication: {

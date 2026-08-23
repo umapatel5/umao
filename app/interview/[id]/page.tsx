@@ -2,16 +2,29 @@ import Link from "next/link";
 import { BarChart3, Clock3, Radio, UserRound } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { InterviewWorkspace } from "@/components/InterviewWorkspace";
-import { sessions } from "@/lib/interview-data";
+import {
+  getInterviewRole,
+  getProblemById,
+  getProblemCategory,
+  getProblemDifficulty
+} from "@/lib/problems/problem-library";
 
 type InterviewPageProps = {
   params: {
     id: string;
   };
+  searchParams?: {
+    difficulty?: string;
+    role?: string;
+    topic?: string;
+  };
 };
 
-export default function InterviewPage({ params }: InterviewPageProps) {
-  const session = sessions.find((item) => item.id === params.id) ?? sessions[0];
+export default function InterviewPage({ params, searchParams }: InterviewPageProps) {
+  const problem = getProblemById(params.id);
+  const role = getInterviewRole(searchParams?.role);
+  const selectedDifficulty = getProblemDifficulty(searchParams?.difficulty) ?? problem.difficulty;
+  const selectedTopic = getProblemCategory(searchParams?.topic) ?? problem.topics[0];
 
   return (
     <AppShell active="interview">
@@ -27,23 +40,29 @@ export default function InterviewPage({ params }: InterviewPageProps) {
           <UserRound aria-hidden size={17} />
           <div>
             <span>Role</span>
-            <strong>{session.role}</strong>
+            <strong>{role}</strong>
           </div>
         </div>
         <div className="status-segment">
           <Clock3 aria-hidden size={17} />
           <div>
-            <span>Duration</span>
-            <strong>{session.durationMinutes} minutes</strong>
+            <span>{selectedDifficulty} · {selectedTopic}</span>
+            <strong>{problem.durationMinutes} minutes</strong>
           </div>
         </div>
-        <Link className="button button-secondary end-interview-link" href={`/results/${session.id}`}>
+        <Link className="button button-secondary end-interview-link" href={`/results/${problem.id}`}>
           <BarChart3 aria-hidden size={17} />
           View results
         </Link>
       </section>
 
-      <InterviewWorkspace sessionId={session.id} />
+      <InterviewWorkspace
+        problem={problem}
+        role={role}
+        selectedDifficulty={selectedDifficulty}
+        selectedTopic={selectedTopic}
+        sessionId={problem.id}
+      />
     </AppShell>
   );
 }

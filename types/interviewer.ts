@@ -1,4 +1,5 @@
 import type { CodeRunResponse } from "@/types/code-execution";
+import type { InterviewRole, ProblemCategory, ProblemDifficulty } from "@/types/problem";
 
 export type InterviewMessageRole = "interviewer" | "candidate" | "system";
 
@@ -18,7 +19,11 @@ export type InterviewerContext = {
       input: string;
       output: string;
     }>;
+    interviewerPrompt?: string;
   };
+  role: InterviewRole;
+  selectedDifficulty: ProblemDifficulty;
+  selectedTopic: ProblemCategory;
   currentCode: string;
   language: string;
   latestRun: CodeRunResponse | null;

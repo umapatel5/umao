@@ -1,8 +1,9 @@
 import { Bookmark, CheckCircle2, Clock3, ListChecks } from "lucide-react";
 import { codingProblem } from "@/lib/coding-problem";
+import type { CodingProblem } from "@/types/problem";
 
 type ProblemPanelProps = {
-  problem?: typeof codingProblem;
+  problem?: CodingProblem;
 };
 
 export function ProblemPanel({ problem = codingProblem }: ProblemPanelProps) {

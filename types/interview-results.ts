@@ -1,14 +1,21 @@
 import type { SpeakingMetrics, WebcamAnalysisMetrics } from "@/types/candidate-analysis";
 import type { CodeRunResponse } from "@/types/code-execution";
 import type { InterviewMessage } from "@/types/interviewer";
+import type { InterviewRole, ProblemCategory, ProblemDifficulty } from "@/types/problem";
 
 export type InterviewScoringInput = {
   code: string;
+  difficulty: ProblemDifficulty;
   hintsUsed: number;
   language: string;
   latestRun: CodeRunResponse | null;
   messages: InterviewMessage[];
+  problemId: string;
+  problemTitle: string;
+  role: InterviewRole;
   speakingMetrics: SpeakingMetrics;
+  topic: ProblemCategory;
+  topics: ProblemCategory[];
   webcamMetrics: WebcamAnalysisMetrics;
 };
 

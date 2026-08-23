@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/auth-service";
-import { codingProblem } from "@/lib/coding-problem";
 import { saveResultForUser } from "@/lib/results/result-repository";
 import type { InterviewResult } from "@/types/interview-results";
 
@@ -12,7 +11,7 @@ export async function POST(request: Request) {
   }
 
   const result = (await request.json()) as InterviewResult;
-  const savedResult = await saveResultForUser(user.id, result, codingProblem.title);
+  const savedResult = await saveResultForUser(user.id, result, result.input.problemTitle);
 
   return NextResponse.json({ result: savedResult });
 }

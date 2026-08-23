@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BarChart3, Calendar, TrendingUp } from "lucide-react";
-import type { AuthUser, InterviewProgressSummary, SavedInterviewResult } from "@/types/account";
+import { Activity, BarChart3, Calendar, Target, TrendingUp } from "lucide-react";
+import type { AuthUser, InterviewAnalytics, InterviewProgressSummary, SavedInterviewResult } from "@/types/account";
 
 type HistoryPayload = {
+  analytics: InterviewAnalytics;
   error?: string;
   progress: InterviewProgressSummary;
   results: SavedInterviewResult[];
@@ -41,9 +42,9 @@ export function HistoryDashboard() {
       <section className="card panel empty-history">
         <h2 className="section-title">Login required</h2>
         <p>{error}</p>
-        <Link className="button button-primary" href="/login">
-          Login to view history
-        </Link>
+            <Link className="button button-primary" href="/login">
+              Login to view history
+            </Link>
       </section>
     );
   }
@@ -73,11 +74,18 @@ export function HistoryDashboard() {
             </span>
           </div>
 
+          <HistoryInsights analytics={payload.analytics} />
+
           <div className="history-list">
             {payload.results.map((result) => (
               <Link className="history-row" href={`/results/${result.id}`} key={result.id}>
                 <div>
                   <div className="history-row-title">{result.codingProblem}</div>
+                  <div className="history-row-context">
+                    <span>{result.role}</span>
+                    <span>{result.difficulty}</span>
+                    <span>{result.topic}</span>
+                  </div>
                   <div className="meta">
                     <Calendar aria-hidden size={13} />
                     {formatDate(result.completedAt)}
@@ -92,11 +100,67 @@ export function HistoryDashboard() {
         <section className="card panel empty-history">
           <h2 className="section-title">No saved interviews yet</h2>
           <p>Complete and submit a practice interview while logged in to start tracking progress.</p>
-          <Link className="button button-primary" href="/interview/system-design-lite">
+          <Link className="button button-primary" href="/practice">
             Start practice
           </Link>
         </section>
       )}
+    </div>
+  );
+}
+
+function HistoryInsights({ analytics }: { analytics: InterviewAnalytics }) {
+  const strongestTopic = analytics.strongestTopics[0];
+  const weakestTopic = analytics.weakestTopics[0];
+
+  return (
+    <div className="history-insights-grid" aria-label="Interview analytics">
+      <InsightCard
+        detail={strongestTopic ? `${strongestTopic.averageOverallScore}% average` : "Complete an interview to measure this."}
+        icon={Target}
+        label="Strongest topic"
+        value={strongestTopic?.topic ?? "Not enough data"}
+      />
+      <InsightCard
+        detail={weakestTopic ? `${weakestTopic.averageOverallScore}% average` : "Complete an interview to measure this."}
+        icon={Activity}
+        label="Focus topic"
+        value={analytics.recommendedTopic ?? "Arrays"}
+      />
+      <div className="history-difficulty-card">
+        <h3>
+          <BarChart3 aria-hidden size={16} />
+          Average by difficulty
+        </h3>
+        <div>
+          {analytics.averageScoreByDifficulty.map((item) => (
+            <span key={item.difficulty}>
+              {item.difficulty}: {item.attempts ? `${item.averageOverallScore}%` : "No attempts"}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InsightCard({
+  detail,
+  icon: Icon,
+  label,
+  value
+}: {
+  detail: string;
+  icon: typeof Target;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="history-insight-card">
+      <Icon aria-hidden size={16} />
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <p>{detail}</p>
     </div>
   );
 }

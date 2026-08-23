@@ -4,14 +4,16 @@ import { AuthStatus } from "@/components/AuthStatus";
 
 type AppShellProps = {
   children: React.ReactNode;
-  active: "dashboard" | "history" | "interview" | "results";
+  active: "dashboard" | "history" | "interview" | "practice" | "resources" | "results" | "settings";
 };
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
-  { href: "/interview/system-design-lite", label: "Interview", icon: Braces, key: "interview" },
+  { href: "/practice", label: "Practice", icon: Braces, key: "practice" },
   { href: "/history", label: "History", icon: History, key: "history" },
-  { href: "/results/system-design-lite", label: "Results", icon: BarChart3, key: "results" }
+  { href: "/results/system-design-lite", label: "Results", icon: BarChart3, key: "results" },
+  { href: "/resources", label: "Resources", icon: BookOpen, key: "resources" },
+  { href: "/settings", label: "Settings", icon: Settings, key: "settings" }
 ] as const;
 
 export function AppShell({ children, active }: AppShellProps) {
@@ -37,14 +39,6 @@ export function AppShell({ children, active }: AppShellProps) {
               </Link>
             );
           })}
-          <Link href="#">
-            <BookOpen aria-hidden size={18} />
-            Resources
-          </Link>
-          <Link href="#">
-            <Settings aria-hidden size={18} />
-            Settings
-          </Link>
         </nav>
 
         <div className="topbar-actions">

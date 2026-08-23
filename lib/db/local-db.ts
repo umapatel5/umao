@@ -1,6 +1,8 @@
 import { mkdir, readFile, rename, writeFile } from "fs/promises";
 import path from "path";
 
+import type { InterviewRole, ProblemCategory, ProblemDifficulty } from "@/types/problem";
+
 type StoredUser = {
   createdAt: string;
   email: string;
@@ -21,13 +23,17 @@ type StoredInterviewResult = {
   codingScore: number;
   communicationScore: number;
   completedAt: string;
+  difficulty: ProblemDifficulty;
   feedback: string;
   id: string;
   improvementAreas: string[];
   overallScore: number;
   problemSolvingScore: number;
+  role: InterviewRole;
   sessionId: string;
   strengths: string[];
+  topic: ProblemCategory;
+  topics: ProblemCategory[];
   userId: string;
 };
 

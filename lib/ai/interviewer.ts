@@ -24,25 +24,23 @@ class MockInterviewerProvider implements LlmProvider {
     const failedTests = context.latestRun?.results.filter((result) => !result.passed) ?? [];
     const askedForHint = /\bhint\b|\bstuck\b|\bhelp\b/i.test(context.candidateMessage);
     const codeChanged = context.currentCode.trim().length > 0;
+    const roleQuestion = getRoleFollowUp(context.role);
 
     let text =
-      "Before we go further, can you explain your approach and the time and space complexity you are aiming for?";
+      `Before we go further, can you explain your approach for this ${context.selectedDifficulty} ${context.selectedTopic} problem and the time and space complexity you are aiming for? ${roleQuestion}`;
 
     if (failedTests.length > 0 && askedForHint) {
       const firstFailure = failedTests[0];
-      text = `Small hint: focus on ${firstFailure.name} and trace the complement you need before adding the current number to your seen map. What value should already be stored when the pair is found?`;
+      text = `Small hint: focus on ${firstFailure.name} and trace one input carefully before changing the code. ${roleQuestion}`;
     } else if (failedTests.length > 0) {
       const firstFailure = failedTests[0];
       text = `I noticed ${failedTests.length} failing test case${failedTests.length === 1 ? "" : "s"}, starting with ${firstFailure.name}. What do you think your code returns there, and how would you trace that input by hand?`;
     } else if (askedForHint) {
-      text =
-        "Small hint: think about the complement for each number as you scan, and make sure duplicate values are handled by storing earlier indices before a later match appears.";
+      text = `Small hint: start from the invariant you want after each step, then test it on the smallest edge case. ${roleQuestion}`;
     } else if (context.latestRun?.passed) {
-      text =
-        "Nice, the current tests pass. Can you describe why the hash map approach handles duplicate values correctly, and what edge case you would add next?";
+      text = `Nice, the current tests pass. What edge case would you add next, and how would your answer change in a ${context.role} interview?`;
     } else if (codeChanged) {
-      text =
-        "I see you have code in the editor. Walk me through the invariant your loop maintains after each iteration.";
+      text = `I see code in the editor. Walk me through the invariant your main loop or recursion maintains, then connect it to what a ${context.role} should prioritize.`;
     }
 
     return {
@@ -103,13 +101,17 @@ function buildMessages(context: InterviewerContext) {
     {
       role: "system",
       content:
-        "You are Umao's AI technical interviewer. Behave like a real interviewer: ask the candidate to explain their approach, ask relevant follow-up questions, react to code changes and test failures, and notice syntax/runtime errors. Ask about edge cases, runtime complexity, and space complexity when appropriate. Give small hints only when the candidate explicitly asks for a hint or says they are stuck. Never immediately reveal the full solution or provide complete code. Keep responses concise, practical, and interview-like."
+        "You are Umao's AI technical interviewer. Behave like a real interviewer: ask the candidate to explain their approach, ask relevant follow-up questions, react to code changes and test failures, and notice syntax/runtime errors. Ask about edge cases, runtime complexity, and space complexity when appropriate. Tailor questions to the selected engineering role. Give small hints only when the candidate explicitly asks for a hint or says they are stuck. Never immediately reveal the full solution or provide complete code. Keep responses concise, practical, and interview-like."
     },
     {
       role: "user",
       content: JSON.stringify(
         {
           codingProblem: context.problem,
+          selectedRole: context.role,
+          selectedDifficulty: context.selectedDifficulty,
+          selectedTopic: context.selectedTopic,
+          roleSpecificGuidance: getRoleFollowUp(context.role),
           currentLanguage: context.language,
           currentCode: context.currentCode,
           latestTestResultsOrErrors: context.latestRun,
@@ -124,4 +126,19 @@ function buildMessages(context: InterviewerContext) {
       )
     }
   ];
+}
+
+function getRoleFollowUp(role: string) {
+  switch (role) {
+    case "Front-End Engineer":
+      return "Also mention how you would keep the solution readable for UI-facing data transformations.";
+    case "Back-End Engineer":
+      return "Also call out reliability, input validation, and how the approach behaves under larger workloads.";
+    case "Full-Stack Engineer":
+      return "Also connect the algorithmic choice to how data might move between client and server.";
+    case "Developer Tools Engineer":
+      return "Also discuss debuggability, test coverage, and how you would help another developer reason about failures.";
+    default:
+      return "Also explain the tradeoff you would communicate in a general software engineering interview.";
+  }
 }

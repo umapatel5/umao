@@ -1,0 +1,24 @@
+services:
+  code-runner:
+    build:
+      context: .
+      dockerfile: runner-service/Dockerfile
+    environment:
+      NODE_ENV: production
+      RUNNER_COMPILE_TIMEOUT_MS: "8000"
+      RUNNER_EXECUTION_TIMEOUT_MS: "2200"
+      RUNNER_MAX_CODE_LENGTH: "20000"
+      RUNNER_PORT: "8080"
+      RUNNER_SHARED_TOKEN: local-dev-runner-token
+    ports:
+      - "8080:8080"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m

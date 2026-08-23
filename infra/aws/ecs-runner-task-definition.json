@@ -1,0 +1,66 @@
+{
+  "family": "umao-code-runner",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::<account-id>:role/umao-ecs-task-execution-role",
+  "taskRoleArn": "arn:aws:iam::<account-id>:role/umao-code-runner-task-role",
+  "containerDefinitions": [
+    {
+      "name": "code-runner",
+      "image": "<account-id>.dkr.ecr.<region>.amazonaws.com/umao-code-runner:<image-tag>",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "RUNNER_COMPILE_TIMEOUT_MS",
+          "value": "8000"
+        },
+        {
+          "name": "RUNNER_EXECUTION_TIMEOUT_MS",
+          "value": "2200"
+        },
+        {
+          "name": "RUNNER_MAX_CODE_LENGTH",
+          "value": "20000"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "RUNNER_SHARED_TOKEN",
+          "valueFrom": "arn:aws:secretsmanager:<region>:<account-id>:secret:umao/code-runner-token"
+        }
+      ],
+      "readonlyRootFilesystem": true,
+      "linuxParameters": {
+        "initProcessEnabled": true
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/umao-code-runner",
+          "awslogs-region": "<region>",
+          "awslogs-stream-prefix": "runner"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 20
+      }
+    }
+  ]
+}

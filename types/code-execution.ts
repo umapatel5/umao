@@ -1,8 +1,9 @@
 export type SupportedExecutionLanguage = "Python" | "Java" | "C++" | "JavaScript";
 
 export type CodeRunRequest = {
-  language: SupportedExecutionLanguage;
   code: string;
+  language: SupportedExecutionLanguage;
+  problemId?: string;
 };
 
 export type CodeTestResult = {

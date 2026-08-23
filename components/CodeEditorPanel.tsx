@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { AlertTriangle, CheckCircle2, Loader2, Play, SendHorizontal, XCircle } from "lucide-react";
 import type { CodeRunResponse, CodeTestResult } from "@/types/code-execution";
+import type { CodingProblem } from "@/types/problem";
 
 type LanguageOption = {
   label: "Python" | "Java" | "C++" | "JavaScript";
   monacoLanguage: string;
   fileName: string;
-  starterCode: string;
 };
 
 type CodeEditorPanelProps = {
@@ -17,94 +17,29 @@ type CodeEditorPanelProps = {
   onLanguageChange?: (language: LanguageOption["label"]) => void;
   onRunResult?: (result: CodeRunResponse | null) => void;
   onSubmitInterview?: () => void;
+  problem: CodingProblem;
 };
 
 const languages: LanguageOption[] = [
   {
     label: "Python",
     monacoLanguage: "python",
-    fileName: "main.py",
-    starterCode: `def two_sum(nums, target):
-    seen = {}
-
-    for index, value in enumerate(nums):
-        complement = target - value
-
-        if complement in seen:
-            return [seen[complement], index]
-
-        seen[value] = index
-
-    return []`
+    fileName: "main.py"
   },
   {
     label: "Java",
     monacoLanguage: "java",
-    fileName: "Solution.java",
-    starterCode: `import java.util.HashMap;
-import java.util.Map;
-
-class Solution {
-    public int[] twoSum(int[] nums, int target) {
-        Map<Integer, Integer> seen = new HashMap<>();
-
-        for (int index = 0; index < nums.length; index++) {
-            int complement = target - nums[index];
-
-            if (seen.containsKey(complement)) {
-                return new int[] { seen.get(complement), index };
-            }
-
-            seen.put(nums[index], index);
-        }
-
-        return new int[] {};
-    }
-}`
+    fileName: "Solution.java"
   },
   {
     label: "C++",
     monacoLanguage: "cpp",
-    fileName: "solution.cpp",
-    starterCode: `#include <unordered_map>
-#include <vector>
-using namespace std;
-
-vector<int> twoSum(vector<int>& nums, int target) {
-    unordered_map<int, int> seen;
-
-    for (int index = 0; index < nums.size(); index++) {
-        int complement = target - nums[index];
-
-        if (seen.count(complement)) {
-            return {seen[complement], index};
-        }
-
-        seen[nums[index]] = index;
-    }
-
-    return {};
-}`
+    fileName: "solution.cpp"
   },
   {
     label: "JavaScript",
     monacoLanguage: "javascript",
-    fileName: "main.js",
-    starterCode: `function twoSum(nums, target) {
-  const seen = new Map();
-
-  for (let index = 0; index < nums.length; index += 1) {
-    const complement = target - nums[index];
-
-    if (seen.has(complement)) {
-      return [seen.get(complement), index];
-    }
-
-    seen.set(nums[index], index);
-  }
-
-  return [];
-}`
+    fileName: "main.js"
   }
 ];
 
@@ -112,7 +47,8 @@ export function CodeEditorPanel({
   onCodeChange,
   onLanguageChange,
   onRunResult,
-  onSubmitInterview
+  onSubmitInterview,
+  problem
 }: CodeEditorPanelProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption["label"]>("Python");
   const activeLanguage = useMemo(
@@ -120,7 +56,7 @@ export function CodeEditorPanel({
     [selectedLanguage]
   );
   const [codeByLanguage, setCodeByLanguage] = useState<Record<string, string>>(
-    Object.fromEntries(languages.map((language) => [language.label, language.starterCode]))
+    Object.fromEntries(languages.map((language) => [language.label, problem.starterCode[language.label]]))
   );
   const [runResult, setRunResult] = useState<CodeRunResponse | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -130,6 +66,18 @@ export function CodeEditorPanel({
     onLanguageChange?.(selectedLanguage);
     onCodeChange?.(codeByLanguage[selectedLanguage]);
   }, [codeByLanguage, onCodeChange, onLanguageChange, selectedLanguage]);
+
+  useEffect(() => {
+    const nextCodeByLanguage = Object.fromEntries(
+      languages.map((language) => [language.label, problem.starterCode[language.label]])
+    );
+
+    setCodeByLanguage(nextCodeByLanguage);
+    setRunResult(null);
+    setRunError(null);
+    onRunResult?.(null);
+    onCodeChange?.(nextCodeByLanguage[selectedLanguage]);
+  }, [onCodeChange, onRunResult, problem, selectedLanguage]);
 
   function selectLanguage(language: LanguageOption["label"]) {
     setSelectedLanguage(language);
@@ -159,7 +107,8 @@ export function CodeEditorPanel({
         },
         body: JSON.stringify({
           language: activeLanguage.label,
-          code: codeByLanguage[activeLanguage.label]
+          code: codeByLanguage[activeLanguage.label],
+          problemId: problem.id
         })
       });
       const payload = (await response.json()) as CodeRunResponse | { error?: string };

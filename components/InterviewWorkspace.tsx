@@ -11,7 +11,6 @@ import {
   releaseTavusAvatarSession,
   startTavusAvatarSession
 } from "@/lib/avatar/tavus-client";
-import { codingProblem } from "@/lib/coding-problem";
 import { createInterviewResult, saveInterviewResult } from "@/lib/scoring/interview-result-store";
 import { emptySpeakingMetrics, emptyWebcamMetrics } from "@/lib/webcam/candidate-webcam";
 import type { SpeechPlaybackStatus } from "@/lib/speech/interviewer-speech";
@@ -19,6 +18,7 @@ import type { AvatarPlaybackSnapshot, InterviewerAvatarState, TavusAvatarSession
 import type { SpeakingMetrics, WebcamAnalysisMetrics } from "@/types/candidate-analysis";
 import type { CodeRunResponse } from "@/types/code-execution";
 import type { InterviewMessage, InterviewerResponse } from "@/types/interviewer";
+import type { CodingProblem, InterviewRole, ProblemCategory, ProblemDifficulty } from "@/types/problem";
 
 const initialMessages: InterviewMessage[] = [
   {
@@ -52,10 +52,20 @@ const idleTavusSession: TavusAvatarSession = {
 };
 
 type InterviewWorkspaceProps = {
+  problem: CodingProblem;
+  role: InterviewRole;
+  selectedDifficulty: ProblemDifficulty;
+  selectedTopic: ProblemCategory;
   sessionId: string;
 };
 
-export function InterviewWorkspace({ sessionId }: InterviewWorkspaceProps) {
+export function InterviewWorkspace({
+  problem,
+  role,
+  selectedDifficulty,
+  selectedTopic,
+  sessionId
+}: InterviewWorkspaceProps) {
   const router = useRouter();
   const [currentCode, setCurrentCode] = useState("");
   const [language, setLanguage] = useState("Python");
@@ -78,12 +88,14 @@ export function InterviewWorkspace({ sessionId }: InterviewWorkspaceProps) {
     () =>
       [
         "Umao is running a live technical interview workspace.",
-        `Coding problem: ${codingProblem.title}.`,
-        codingProblem.prompt,
+        `Selected role: ${role}.`,
+        `Selected setup: ${selectedDifficulty} difficulty, ${selectedTopic} topic.`,
+        `Coding problem: ${problem.title}.`,
+        problem.prompt,
         "Behave like a professional technical interviewer. Ask concise follow-up questions about approach, edge cases, runtime, and space complexity.",
         "Do not reveal the full solution. Do not analyze webcam input."
       ].join(" "),
-    []
+    [problem.prompt, problem.title, role, selectedDifficulty, selectedTopic]
   );
 
   useEffect(() => {
@@ -144,11 +156,15 @@ export function InterviewWorkspace({ sessionId }: InterviewWorkspaceProps) {
         },
         body: JSON.stringify({
           problem: {
-            title: codingProblem.title,
-            prompt: codingProblem.prompt,
-            constraints: codingProblem.constraints,
-            examples: codingProblem.examples
+            title: problem.title,
+            prompt: problem.prompt,
+            constraints: problem.constraints,
+            examples: problem.examples,
+            interviewerPrompt: problem.interviewerPrompt
           },
+          role,
+          selectedDifficulty,
+          selectedTopic,
           currentCode,
           language,
           latestRun,
@@ -176,11 +192,17 @@ export function InterviewWorkspace({ sessionId }: InterviewWorkspaceProps) {
   async function submitInterview() {
     const result = createInterviewResult(sessionId, {
       code: currentCode,
+      difficulty: selectedDifficulty,
       hintsUsed,
       language,
       latestRun,
       messages,
+      problemId: problem.id,
+      problemTitle: problem.title,
+      role,
       speakingMetrics,
+      topic: selectedTopic,
+      topics: problem.topics,
       webcamMetrics
     });
 
@@ -209,12 +231,13 @@ export function InterviewWorkspace({ sessionId }: InterviewWorkspaceProps) {
 
   return (
     <div className="technical-interview-layout">
-      <ProblemPanel problem={codingProblem} />
+      <ProblemPanel problem={problem} />
       <CodeEditorPanel
         onCodeChange={setCurrentCode}
         onLanguageChange={setLanguage}
         onRunResult={setLatestRun}
         onSubmitInterview={submitInterview}
+        problem={problem}
       />
       <aside className="interview-support-rail">
         <InterviewerPanel
