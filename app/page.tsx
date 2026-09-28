@@ -1,273 +1,203 @@
-import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowRight,
-  BarChart3,
-  Bot,
-  Brain,
-  Camera,
-  CheckCircle2,
-  Code2,
-  LockKeyhole,
-  Mic,
-  PlayCircle,
-  ShieldCheck,
-  Sparkles,
-  TerminalSquare,
-  Video,
-  Waves
-} from "lucide-react";
+import { ArrowRight, BarChart3, CheckCircle2, Code2, MessageCircle, PlayCircle, ShieldCheck, Sparkles, Target } from "lucide-react";
+import { InterviewProductMockup } from "@/components/InterviewProductMockup";
+import { MarketingShell } from "@/components/MarketingShell";
 
-const stats = [
-  { label: "Practice languages", value: "4" },
+const productFacts = [
+  { label: "Supported languages", value: "4" },
   { label: "Role tracks", value: "5" },
   { label: "Score categories", value: "3" },
-  { label: "Start cost", value: "$0" }
+  { label: "Raw media saved", value: "0" }
 ];
 
-const featureCards = [
+const features = [
   {
-    title: "Interviewer that pushes back",
-    copy: "Umao asks approach, edge-case, runtime, and follow-up questions based on your code and test results.",
-    icon: Bot
-  },
-  {
-    title: "Real coding workspace",
-    copy: "Practice with the same flow you expect in technical screens: prompt, editor, tests, run, submit.",
+    title: "Adaptive interviewer",
+    copy: "Questions and follow-ups change based on your code, test results, and answers.",
     icon: Code2
   },
   {
-    title: "Voice-first practice",
-    copy: "Speak responses, review transcripts, and keep typed answers available when you need a fallback.",
-    icon: Mic
+    title: "Natural conversation",
+    copy: "Speak or type through your thought process while the transcript stays visible.",
+    icon: MessageCircle
   },
   {
-    title: "Camera-aware feedback",
-    copy: "Track face presence, looking away, pauses, and speaking duration without saving raw media.",
-    icon: Camera
+    title: "Actionable feedback",
+    copy: "Review coding, problem-solving, and communication scores after each session.",
+    icon: BarChart3
+  },
+  {
+    title: "Interview-ready confidence",
+    copy: "Practice the flow of a real technical screen before the real thing.",
+    icon: Target
   }
-];
-
-const motionItems = [
-  "Python tests running",
-  "AI follow-up ready",
-  "Complexity checked",
-  "Transcript saved",
-  "Communication scored",
-  "Next topic recommended"
-];
-
-const steps = [
-  "Pick a role and interview topic",
-  "Code while explaining your approach",
-  "Run tests and answer follow-ups",
-  "Submit and review your score report"
 ];
 
 export default function HomePage() {
   return (
-    <main className="marketing-page">
-      <header className="marketing-header">
-        <Link className="marketing-brand" href="/">
-          umao
-        </Link>
-        <nav className="marketing-nav" aria-label="Landing page navigation">
-          <a href="#features">Features</a>
-          <a href="#workflow">How it works</a>
-          <Link href="/resources">Resources</Link>
-        </nav>
-        <div className="marketing-auth">
-          <Link className="marketing-login" href="/login">
-            Login
-          </Link>
-          <Link className="marketing-signup" href="/signup">
-            Sign up free
-          </Link>
-        </div>
-      </header>
-
-      <section className="marketing-hero">
-        <div className="hero-scene" aria-hidden>
-          <div className="hero-grid" />
-          <div className="hero-code-window hero-window">
-            <div className="hero-window-top">
-              <span />
-              <span />
-              <span />
-              <strong>two_sum.py</strong>
-            </div>
-            <pre>{`def two_sum(nums, target):
-    seen = {}
-    for index, value in enumerate(nums):
-        complement = target - value
-        if complement in seen:
-            return [seen[complement], index]
-        seen[value] = index`}</pre>
-          </div>
-          <div className="hero-interviewer-card hero-window">
-            <Image
-              alt=""
-              height={180}
-              priority
-              src="/avatar/interviewer.png"
-              width={180}
-            />
-            <div>
-              <span>AI Interviewer</span>
-              <strong>Explain why this is O(n).</strong>
-            </div>
-            <div className="voice-wave">
-              <i />
-              <i />
-              <i />
-              <i />
-              <i />
-              <i />
-              <i />
-            </div>
-          </div>
-          <div className="hero-score-card hero-window">
-            <span>Live signal</span>
-            <strong>87</strong>
-            <small>Great structure. Add one edge case.</small>
-          </div>
-          <div className="hero-test-card hero-window">
-            <CheckCircle2 size={17} />
-            <span>3 / 3 test cases passed</span>
-          </div>
-        </div>
-
-        <div className="hero-content">
-          <span className="hero-kicker">
+    <MarketingShell>
+      <section className="site-hero">
+        <div className="site-hero-copy">
+          <span className="site-pill">
             <Sparkles aria-hidden size={16} />
-            AI technical interview simulator
+            Human-feeling technical interview practice
           </span>
-          <h1>Practice like the interview is already live.</h1>
+          <h1>
+            Practice technical interviews. <em>For real.</em>
+          </h1>
           <p>
-            Umao is a mock technical interview room with coding tests, voice responses, a talking
-            interviewer, webcam-aware communication signals, and final feedback.
+            Live coding, natural conversation, and feedback that helps you actually improve.
+            Umao is still in beta, but the core interview room is already working.
           </p>
-          <div className="hero-actions">
-            <Link className="marketing-primary-button" href="/practice">
-              Try Umao for free
+          <div className="site-action-row">
+            <Link className="site-button site-button-primary site-button-large" href="/practice">
+              Start practicing
               <ArrowRight aria-hidden size={18} />
             </Link>
-            <Link className="marketing-secondary-button" href="/login">
-              Login
+            <Link className="site-button site-button-secondary site-button-large" href="/product">
+              <PlayCircle aria-hidden size={18} />
+              Watch the flow
             </Link>
           </div>
-          <div className="hero-proof">
-            <span>No credit card</span>
-            <span>Browser-based practice</span>
-            <span>No raw media saved</span>
+          <div className="site-proof-row">
+            <span>
+              <CheckCircle2 aria-hidden size={15} />
+              Early beta
+            </span>
+            <span>
+              <CheckCircle2 aria-hidden size={15} />
+              No company claims
+            </span>
+            <span>
+              <CheckCircle2 aria-hidden size={15} />
+              No raw media saved
+            </span>
           </div>
         </div>
+
+        <InterviewProductMockup />
       </section>
 
-      <section className="stats-strip" aria-label="Umao platform stats">
-        {stats.map((stat) => (
-          <article key={stat.label}>
-            <strong>{stat.value}</strong>
-            <span>{stat.label}</span>
+      <section className="site-facts" aria-label="Current Umao product facts">
+        <span className="site-facts-label">Current Umao build includes</span>
+        {productFacts.map((fact) => (
+          <article key={fact.label}>
+            <strong>{fact.value}</strong>
+            <span>{fact.label}</span>
           </article>
         ))}
       </section>
 
-      <section className="motion-rail" aria-label="Live Umao feature states">
+      <section className="site-feature-intro">
+        <span className="site-section-kicker">Built to help you improve</span>
+        <h2>
+          Real practice. Real <em>progress.</em>
+        </h2>
+      </section>
+
+      <section className="site-feature-grid">
+        {features.map((feature) => {
+          const Icon = feature.icon;
+
+          return (
+            <article key={feature.title}>
+              <Icon aria-hidden size={26} />
+              <div>
+                <h3>{feature.title}</h3>
+                <p>{feature.copy}</p>
+              </div>
+            </article>
+          );
+        })}
+      </section>
+
+      <section className="site-role-section" id="product">
         <div>
-          {[...motionItems, ...motionItems].map((item, index) => (
-            <span key={`${item}-${index}`}>
-              <Waves aria-hidden size={15} />
-              {item}
-            </span>
+          <span className="site-pill">
+            <Sparkles aria-hidden size={16} />
+            Role-specific practice
+          </span>
+          <h2>
+            Practice for the role you <em>actually</em> want.
+          </h2>
+          <p>
+            Choose Software Engineer, Front-End, Back-End, Full-Stack, or Developer Tools.
+            Umao carries that context into the interview session.
+          </p>
+        </div>
+        <div className="role-list">
+          {["Front-End Engineer", "Back-End Engineer", "Full-Stack Engineer", "Developer Tools Engineer"].map((role, index) => (
+            <Link className={index === 0 ? "active" : undefined} href="/practice" key={role}>
+              <span>{role}</span>
+              <ArrowRight aria-hidden size={18} />
+            </Link>
           ))}
         </div>
       </section>
 
-      <section className="feature-section" id="features">
-        <div className="section-copy">
-          <span className="hero-kicker">Built for technical screens</span>
-          <h2>Not a flashcard app. A full interview rehearsal.</h2>
-          <p>
-            Umao combines the parts that make technical interviews hard: coding under pressure,
-            explaining decisions, handling follow-ups, and staying composed on camera.
-          </p>
+      <section className="site-how-section" id="workflow">
+        <div>
+          <span className="site-section-kicker">How Umao works</span>
+          <h2>
+            See how a practice session <em>unfolds.</em>
+          </h2>
         </div>
-
-        <div className="feature-card-grid">
-          {featureCards.map((feature) => {
-            const Icon = feature.icon;
-
-            return (
-              <article className="feature-card" key={feature.title}>
-                <Icon aria-hidden size={24} />
-                <h3>{feature.title}</h3>
-                <p>{feature.copy}</p>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="workflow-section" id="workflow">
-        <div className="workflow-panel">
-          <span className="hero-kicker">
-            <Brain aria-hidden size={16} />
-            Practice loop
-          </span>
-          <h2>Choose. Interview. Submit. Improve.</h2>
-          <p>
-            Start with a target role and topic, then let Umao guide you through a complete mock
-            coding interview with results you can use for the next round.
-          </p>
-          <Link className="marketing-primary-button" href="/practice">
-            Start free practice
-            <PlayCircle aria-hidden size={18} />
-          </Link>
-        </div>
-
-        <ol className="workflow-steps">
-          {steps.map((step, index) => (
+        <ol>
+          {["Choose role", "Solve live", "Speak with interviewer", "Review report"].map((step, index) => (
             <li key={step}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
+              <span>{index + 1}</span>
               <strong>{step}</strong>
             </li>
           ))}
         </ol>
       </section>
 
-      <section className="security-band">
+      <section className="site-results-section">
         <div>
-          <ShieldCheck aria-hidden size={23} />
-          <strong>Private by design</strong>
-          <span>No webcam video or microphone audio is stored.</span>
+          <span className="site-section-kicker">Results & insights</span>
+          <h2>
+            See exactly how you’re <em>improving.</em>
+          </h2>
+          <p>
+            Umao combines test-case results, hints used, conversation quality, speaking duration,
+            pauses, and camera signals into a focused score report.
+          </p>
         </div>
-        <div>
-          <TerminalSquare aria-hidden size={23} />
-          <strong>Multi-language runner</strong>
-          <span>Python, JavaScript, Java, and C++ architecture.</span>
-        </div>
-        <div>
-          <Video aria-hidden size={23} />
-          <strong>Avatar fallback</strong>
-          <span>Tavus can speak responses, local avatar stays ready.</span>
-        </div>
-        <div>
-          <LockKeyhole aria-hidden size={23} />
-          <strong>Server-side secrets</strong>
-          <span>Provider keys stay out of client code.</span>
+        <div className="results-preview-card">
+          <span>Your Interview Score</span>
+          <strong>82</strong>
+          <small>/100</small>
+          <div>
+            <p>Coding <b>88</b></p>
+            <p>Problem solving <b>85</b></p>
+            <p>Communication <b>76</b></p>
+          </div>
         </div>
       </section>
 
-      <section className="final-marketing-cta">
-        <BarChart3 aria-hidden size={28} />
-        <h2>Run one mock interview and see what to fix next.</h2>
-        <p>Try Umao for free, then use your score report to plan the next practice session.</p>
-        <Link className="marketing-primary-button" href="/practice">
-          Try Umao for free
-          <ArrowRight aria-hidden size={18} />
-        </Link>
+      <section className="site-cta-section">
+        <div>
+          <span className="site-section-kicker">Built for engineers</span>
+          <h2>
+            Walk into your next interview <em>ready.</em>
+          </h2>
+          <p>Real conversations. Actionable feedback. Everything you need to practice with confidence.</p>
+          <div className="site-truth-grid">
+            <span><ShieldCheck size={22} /> No raw media saved</span>
+            <span><Code2 size={22} /> Practice in your browser</span>
+            <span><Sparkles size={22} /> Feedback, not grades alone</span>
+          </div>
+        </div>
+        <div className="deep-red-card">
+          <Sparkles aria-hidden size={30} />
+          <h3>Start practicing today</h3>
+          <p>Try the current Umao beta and improve one mock interview at a time.</p>
+          <Link className="site-button site-button-light" href="/practice">
+            Start practicing
+            <ArrowRight aria-hidden size={18} />
+          </Link>
+        </div>
       </section>
-    </main>
+    </MarketingShell>
   );
 }

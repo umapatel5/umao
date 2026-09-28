@@ -1,51 +1,36 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  BookOpenCheck,
-  Brain,
-  Braces,
-  ClipboardCheck,
-  History,
-  MessageSquareText,
-  Network,
-  Route,
-  Timer
-} from "lucide-react";
-import { AppShell } from "@/components/AppShell";
-import { PageHeader } from "@/components/PageHeader";
+import { ArrowRight, Brain, ClipboardCheck, Code2, MessageSquareText, Network, Route, Timer } from "lucide-react";
+import { MarketingShell } from "@/components/MarketingShell";
 import { codingProblems, problemCategories } from "@/lib/problems/problem-library";
 
-const resourceTracks = [
+const guides = [
   {
-    title: "Data Structures",
-    icon: Network,
-    copy: "Arrays, hash maps, trees, and graphs with interviewer-style follow-ups.",
-    items: ["Trace examples out loud", "Name the invariant", "Discuss edge cases before coding"]
-  },
-  {
-    title: "System Design Lite",
-    icon: Route,
-    copy: "Practice scoping, tradeoffs, and structured design communication.",
-    items: ["Clarify requirements", "Sketch APIs and data flow", "Call out bottlenecks"]
+    title: "Data structures",
+    copy: "Arrays, hash maps, trees, graphs, and dynamic programming practice prompts.",
+    icon: Network
   },
   {
     title: "Communication",
-    icon: MessageSquareText,
-    copy: "Build the habit of explaining decisions while keeping momentum.",
-    items: ["Narrate assumptions", "Summarize before coding", "Recover cleanly from mistakes"]
+    copy: "How to explain your approach, assumptions, tradeoffs, edge cases, and complexity.",
+    icon: MessageSquareText
   },
   {
     title: "Debugging",
-    icon: ClipboardCheck,
-    copy: "Use failed test cases as signal instead of panic.",
-    items: ["Read expected vs actual", "Create a smaller repro", "Fix one hypothesis at a time"]
+    copy: "Use failed test cases to narrow the bug instead of rewriting everything.",
+    icon: ClipboardCheck
+  },
+  {
+    title: "System thinking",
+    copy: "Practice scoping, API design, data flow, and reliability conversations.",
+    icon: Route
   }
 ];
 
 const drills = [
-  { label: "10-minute warmup", value: "1 easy problem + approach explanation", icon: Timer },
-  { label: "Mock loop", value: "Code, run tests, answer complexity, review feedback", icon: Brain },
-  { label: "Review habit", value: "Open one past result and practice the weakest topic", icon: History }
+  "10-minute warmup: explain first, code second",
+  "One failed-test review before changing code",
+  "Complexity answer after every accepted solution",
+  "Open one saved result and practice the weakest topic"
 ];
 
 export default function ResourcesPage() {
@@ -55,95 +40,58 @@ export default function ResourcesPage() {
   }));
 
   return (
-    <AppShell active="resources">
-      <PageHeader
-        eyebrow="Resources"
-        title="Prepare like the interview is real"
-        copy="Use these focused guides and drills alongside Umao's mock interview workspace."
-        actions={
-          <Link className="button button-primary" href="/practice">
-            <Braces aria-hidden size={17} />
-            Choose Problem
-          </Link>
-        }
-      />
-
-      <section className="resources-overview">
-        <div className="card panel resource-spotlight">
-          <div>
-            <span className="pill pill-ready">Recommended next</span>
-            <h2>Run a full mock interview, then review the score breakdown.</h2>
-            <p>
-              Umao already tracks test results, hints, communication metrics, and topic performance.
-              The fastest improvement loop is one focused attempt followed by one focused review.
-            </p>
-          </div>
-          <div className="resource-spotlight-actions">
-            <Link className="button button-primary" href="/practice">
-              Start Interview
-              <ArrowRight aria-hidden size={17} />
-            </Link>
-            <Link className="button button-secondary" href="/history">
-              View History
-            </Link>
-          </div>
-        </div>
-
-        <div className="resource-drill-list">
-          {drills.map((drill) => {
-            const Icon = drill.icon;
-
-            return (
-              <article className="card panel resource-drill" key={drill.label}>
-                <Icon aria-hidden size={20} />
-                <div>
-                  <strong>{drill.label}</strong>
-                  <span>{drill.value}</span>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+    <MarketingShell>
+      <section className="site-subpage-hero">
+        <span className="site-pill">Resources</span>
+        <h1>
+          Guides and drills for better mock interviews.
+        </h1>
+        <p>
+          Use these resources alongside Umao sessions so each practice round turns into a specific improvement.
+        </p>
+        <Link className="site-button site-button-primary site-button-large" href="/practice">
+          Choose a problem
+          <ArrowRight aria-hidden size={18} />
+        </Link>
       </section>
 
-      <section className="resource-card-grid" aria-label="Interview preparation resources">
-        {resourceTracks.map((track) => {
-          const Icon = track.icon;
+      <section className="site-card-grid">
+        {guides.map((guide) => {
+          const Icon = guide.icon;
 
           return (
-            <article className="card panel resource-card" key={track.title}>
-              <div className="resource-card-header">
-                <Icon aria-hidden size={21} />
-                <h2>{track.title}</h2>
-              </div>
-              <p>{track.copy}</p>
-              <ul>
-                {track.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+            <article key={guide.title}>
+              <Icon aria-hidden size={26} />
+              <h2>{guide.title}</h2>
+              <p>{guide.copy}</p>
             </article>
           );
         })}
       </section>
 
-      <section className="card panel topic-roadmap">
-        <div className="topic-roadmap-header">
-          <div>
-            <h2 className="section-title">Problem Library Coverage</h2>
-            <p className="meta">Current topic coverage from the modular problem data.</p>
-          </div>
-          <BookOpenCheck aria-hidden size={22} />
+      <section className="resource-public-layout">
+        <div className="resource-drill-card">
+          <Timer aria-hidden size={26} />
+          <h2>Practice drills</h2>
+          <ul>
+            {drills.map((drill) => (
+              <li key={drill}>{drill}</li>
+            ))}
+          </ul>
         </div>
-        <div className="topic-roadmap-grid">
-          {topicCounts.map((topic) => (
-            <div className="topic-roadmap-item" key={topic.category}>
-              <span>{topic.category}</span>
-              <strong>{topic.count}</strong>
-            </div>
-          ))}
+        <div className="resource-topic-card">
+          <Brain aria-hidden size={26} />
+          <h2>Current problem coverage</h2>
+          <div>
+            {topicCounts.map((topic) => (
+              <span key={topic.category}>
+                <Code2 aria-hidden size={15} />
+                {topic.category}: {topic.count}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
-    </AppShell>
+    </MarketingShell>
   );
 }
