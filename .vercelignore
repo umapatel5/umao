@@ -1,14 +1,9 @@
-node_modules
-.next
-out
-dist
-build
 .env
 .env*.local
-tsconfig.tsbuildinfo
+.data
+.next
+node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
-.data
-.vercel

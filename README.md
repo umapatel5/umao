@@ -2,6 +2,23 @@
 
 A Next.js TypeScript AI technical interview simulator with role-based practice setup, voice/webcam interview signals, scoring, saved history, Tavus avatar fallback, and multi-language code execution.
 
+## Demo
+
+- GitHub: https://github.com/uma5patel/umao
+- Live demo: deploy with Vercel from the GitHub repository, then add the permanent URL here.
+
+Umao is built as an end-to-end technical interview practice platform: candidates choose a role and coding problem, solve in a Monaco-powered workspace, talk with an AI interviewer, receive scored feedback, and review saved interview history.
+
+## Highlights
+
+- Role, difficulty, topic, and randomized problem selection.
+- Monaco coding workspace with Python, JavaScript, Java, and C++ execution paths.
+- Text and voice-based interviewer conversation with browser speech fallback.
+- Tavus avatar integration behind a provider abstraction, with local avatar fallback.
+- Webcam attention metrics without storing or uploading raw media.
+- Deterministic interview scoring with saved history and progress analytics.
+- Docker-ready multi-language runner and AWS ECS/Fargate deployment templates.
+
 ## Quick Start
 
 ```bash
@@ -85,6 +102,17 @@ Create `.env.local` from `.env.example` and fill only the services you want to u
 - `CODE_RUNNER_SERVICE_URL` and `CODE_RUNNER_SERVICE_TOKEN`: optional private execution service. Leave blank for local in-process execution.
 
 Never commit real API keys, AWS credentials, raw webcam video, or microphone audio.
+
+## Deployment
+
+Umao is prepared for Vercel preview deployments. For a permanent public demo:
+
+1. Import `uma5patel/umao` into Vercel.
+2. Keep optional secrets such as `OPENAI_API_KEY` and Tavus values in Vercel environment variables.
+3. Leave code runner variables blank for the built-in development fallback, or point them at a private runner service.
+4. Deploy from the `main` branch and copy the Vercel URL into the demo section above.
+
+The local JSON database is for development/demo use only. Production should use a managed database before storing real user history.
 
 ## Current Status
 

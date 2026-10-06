@@ -17,6 +17,7 @@ type DailyCallFrame = {
   join: (options: {
     startAudioOff?: boolean;
     startVideoOff?: boolean;
+    url: string;
     userName?: string;
   }) => Promise<void>;
   leave: () => Promise<void>;
@@ -108,6 +109,7 @@ export function TavusAvatarFrame({
         void call.join({
           startAudioOff: true,
           startVideoOff: true,
+          url: session.conversationUrl,
           userName: "Umao Echo Controller"
         }).catch((error) => {
           setDailyState("error");

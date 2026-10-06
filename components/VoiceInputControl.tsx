@@ -8,6 +8,7 @@ import {
   recordSpeechActivity,
   startSpeakingSession
 } from "@/lib/webcam/candidate-webcam";
+import { stopInterviewerSpeech } from "@/lib/speech/interviewer-speech";
 import type { SpeakingMetrics } from "@/types/candidate-analysis";
 
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
@@ -62,15 +63,20 @@ export function VoiceInputControl({
 }: VoiceInputControlProps) {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const finalTranscriptRef = useRef("");
+  const interimTranscriptRef = useRef("");
   const speakingMetricsRef = useRef<SpeakingMetrics>(emptySpeakingMetrics);
   const [error, setError] = useState<string | null>(null);
   const [interimTranscript, setInterimTranscript] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [lastTranscript, setLastTranscript] = useState("");
 
   async function startRecording() {
     setError(null);
     setInterimTranscript("");
+    setLastTranscript("");
     finalTranscriptRef.current = "";
+    interimTranscriptRef.current = "";
+    stopInterviewerSpeech();
 
     const SpeechRecognition =
       (window as SpeechWindow).SpeechRecognition ?? (window as SpeechWindow).webkitSpeechRecognition;
@@ -114,6 +120,7 @@ export function VoiceInputControl({
         updateSpeakingMetrics(recordSpeechActivity(speakingMetricsRef.current));
       }
 
+      interimTranscriptRef.current = interim.trim();
       setInterimTranscript(interim.trim());
     };
 
@@ -127,9 +134,13 @@ export function VoiceInputControl({
       setIsListening(false);
       onListeningChange?.(false);
       updateSpeakingMetrics(recordSpeakingPause(speakingMetricsRef.current));
-      const transcript = finalTranscriptRef.current.trim();
+      const transcript = `${finalTranscriptRef.current} ${interimTranscriptRef.current}`.trim();
 
       if (transcript) {
+        setLastTranscript(transcript);
+        setInterimTranscript("");
+        interimTranscriptRef.current = "";
+        finalTranscriptRef.current = "";
         onTranscriptReady(transcript);
       }
     };
@@ -177,7 +188,11 @@ export function VoiceInputControl({
       </div>
 
       <div className={isListening ? "voice-status listening" : "voice-status"}>
-        {isListening ? "Listening..." : "Voice input is ready when your browser supports speech recognition."}
+        {isListening
+          ? "Listening..."
+          : lastTranscript
+            ? "Transcript added below. Review or edit it, then press Send."
+            : "Voice input is ready when your browser supports speech recognition."}
       </div>
 
       {interimTranscript ? <div className="voice-preview">{interimTranscript}</div> : null}

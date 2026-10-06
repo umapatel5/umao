@@ -6,7 +6,10 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   devIndicators: false,
-  outputFileTracingRoot: projectRoot
+  outputFileTracingRoot: projectRoot,
+  outputFileTracingExcludes: {
+    "*": [".data/**/*", ".env", ".env*.local"]
+  }
 };
 
 export default nextConfig;

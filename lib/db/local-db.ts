@@ -43,7 +43,8 @@ type LocalDatabase = {
   users: StoredUser[];
 };
 
-const dataDirectory = path.join(process.cwd(), ".data");
+const dataDirectory =
+  process.env.UMAO_DATA_DIR ?? (process.env.VERCEL ? path.join("/tmp", "umao-data") : path.join(process.cwd(), ".data"));
 const databasePath = path.join(dataDirectory, "umao-db.json");
 
 const emptyDatabase: LocalDatabase = {

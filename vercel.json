@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "nextjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "runner-service",
+          "format": "url",
+          "env": "CODE_RUNNER_SERVICE_URL"
+        }
+      ]
+    },
+    "runner-service": {
+      "root": "runner-service",
+      "runtime": "node",
+      "entrypoint": "server.mjs"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
+  ]
+}
