@@ -42,7 +42,6 @@ export default function ResourcesPage() {
   return (
     <MarketingShell>
       <section className="site-subpage-hero">
-        <span className="site-pill">Resources</span>
         <h1>
           Guides and drills for better mock interviews.
         </h1>

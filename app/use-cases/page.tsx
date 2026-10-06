@@ -34,7 +34,6 @@ export default function UseCasesPage() {
   return (
     <MarketingShell>
       <section className="site-subpage-hero">
-        <span className="site-pill">Use cases</span>
         <h1>
           Practice for the role you actually want.
         </h1>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, CheckCircle2, Code2, MessageCircle, PlayCircle, ShieldCheck, Sparkles, Target } from "lucide-react";
+import { ArrowRight, BarChart3, CheckCircle2, Code2, MessageCircle, PlayCircle, ShieldCheck, Target } from "lucide-react";
 import { InterviewProductMockup } from "@/components/InterviewProductMockup";
 import { MarketingShell } from "@/components/MarketingShell";
 
@@ -38,20 +38,17 @@ export default function HomePage() {
     <MarketingShell>
       <section className="site-hero">
         <div className="site-hero-copy">
-          <span className="site-pill">
-            <Sparkles aria-hidden size={16} />
-            Human-feeling technical interview practice
-          </span>
+          <span className="site-hero-kicker">AI technical interview simulator</span>
           <h1>
-            Practice technical interviews. <em>For real.</em>
+            Practice for your next technology interview.
           </h1>
           <p>
-            Live coding, natural conversation, and feedback that helps you actually improve.
-            Umao is still in beta, but the core interview room is already working.
+            Live coding sessions, AI interviews, body language and speech monitoring,
+            and actionable feedback to help you improve.
           </p>
           <div className="site-action-row">
             <Link className="site-button site-button-primary site-button-large" href="/practice">
-              Start practicing
+              Get started
               <ArrowRight aria-hidden size={18} />
             </Link>
             <Link className="site-button site-button-secondary site-button-large" href="/product">
@@ -113,10 +110,6 @@ export default function HomePage() {
 
       <section className="site-role-section" id="product">
         <div>
-          <span className="site-pill">
-            <Sparkles aria-hidden size={16} />
-            Role-specific practice
-          </span>
           <h2>
             Practice for the role you <em>actually</em> want.
           </h2>
@@ -185,11 +178,10 @@ export default function HomePage() {
           <div className="site-truth-grid">
             <span><ShieldCheck size={22} /> No raw media saved</span>
             <span><Code2 size={22} /> Practice in your browser</span>
-            <span><Sparkles size={22} /> Feedback, not grades alone</span>
+            <span><BarChart3 size={22} /> Feedback, not grades alone</span>
           </div>
         </div>
         <div className="deep-red-card">
-          <Sparkles aria-hidden size={30} />
           <h3>Start practicing today</h3>
           <p>Try the current Umao beta and improve one mock interview at a time.</p>
           <Link className="site-button site-button-light" href="/practice">

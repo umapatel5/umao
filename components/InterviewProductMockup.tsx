@@ -9,7 +9,7 @@ export function InterviewProductMockup({ compact = false }: InterviewProductMock
   return (
     <div className={compact ? "product-mockup compact" : "product-mockup"} aria-label="Umao interview workspace preview">
       <aside className="mockup-sidebar" aria-hidden>
-        <span className="mockup-logo">✦</span>
+        <span className="mockup-logo">U</span>
         <Code2 size={20} />
         <MessageSquareText size={20} />
         <BarChart3 size={20} />

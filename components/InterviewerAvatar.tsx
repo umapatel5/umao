@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
-import { AudioLines, Brain, Ear, Sparkles } from "lucide-react";
+import { AudioLines, Brain, Ear, UserRound } from "lucide-react";
 import { getAvatarPlaybackLabel, getAvatarStateView } from "@/lib/avatar/interviewer-avatar";
 import type { AvatarPlaybackSnapshot, InterviewerAvatarState } from "@/types/avatar";
 
@@ -67,5 +67,5 @@ function getStateIcon(state: InterviewerAvatarState) {
     return AudioLines;
   }
 
-  return Sparkles;
+  return UserRound;
 }

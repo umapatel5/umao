@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Code2, HeartHandshake, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Code2, HeartHandshake, MessageCircle, ShieldCheck } from "lucide-react";
 import { MarketingShell } from "@/components/MarketingShell";
 
 const values = [
@@ -11,7 +11,7 @@ const values = [
   {
     title: "Feedback should be usable",
     copy: "Scores and notes should point to the next thing to practice, not just label a performance.",
-    icon: Sparkles
+    icon: MessageCircle
   },
   {
     title: "Privacy should be obvious",
@@ -29,7 +29,6 @@ export default function AboutPage() {
   return (
     <MarketingShell>
       <section className="site-subpage-hero">
-        <span className="site-pill">About Umao</span>
         <h1>
           Built to make technical interview practice feel less fake.
         </h1>

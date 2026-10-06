@@ -232,9 +232,9 @@ textarea {
 
 .main {
   min-width: 0;
-  width: min(1680px, 100%);
+  width: min(1920px, 100%);
   margin: 0 auto;
-  padding: 18px 24px 34px;
+  padding: 16px 18px 34px;
 }
 
 .page-header {
@@ -404,10 +404,10 @@ textarea {
 
 .technical-interview-layout {
   display: grid;
-  grid-template-columns: minmax(280px, 0.65fr) minmax(560px, 1.35fr) minmax(320px, 0.75fr);
+  grid-template-columns: minmax(260px, 0.55fr) minmax(640px, 1.5fr) minmax(380px, 0.95fr);
   grid-template-areas: "problem editor support";
   align-items: start;
-  gap: 18px;
+  gap: 16px;
 }
 
 .interview-status-bar {
@@ -864,12 +864,13 @@ textarea {
 }
 
 .video-stage {
-  position: relative;
+  display: grid;
+  gap: 12px;
 }
 
 .interviewer-avatar-frame {
   position: relative;
-  min-height: 300px;
+  min-height: 390px;
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(17, 24, 39, 0.02), rgba(17, 24, 39, 0.72)),
@@ -1021,7 +1022,7 @@ textarea {
 }
 
 .tavus-avatar-frame {
-  min-height: 300px;
+  min-height: 390px;
   border-radius: 8px;
   border: 1px solid rgba(17, 24, 39, 0.12);
   background: #111827;
@@ -1031,7 +1032,7 @@ textarea {
 .tavus-avatar-iframe {
   display: block;
   width: 100%;
-  min-height: 300px;
+  min-height: 390px;
   border: 0;
   background: #111827;
 }
@@ -1048,25 +1049,26 @@ textarea {
 }
 
 .candidate-webcam-panel {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  width: min(172px, calc(100% - 24px));
+  width: 100%;
   display: grid;
-  gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  grid-template-columns: minmax(140px, 190px) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 10px 12px;
+  margin-top: 12px;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(17, 24, 39, 0.86);
-  color: white;
-  padding: 8px;
-  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.18);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 253, 249, 0.86);
+  color: var(--ink);
+  padding: 10px;
+  box-shadow: 0 12px 28px rgba(95, 58, 34, 0.08);
 }
 
 .candidate-video-shell {
   position: relative;
+  grid-row: 1 / span 2;
   aspect-ratio: 16 / 10;
-  min-height: 86px;
+  min-height: 108px;
   overflow: hidden;
   border-radius: 6px;
   background: rgba(17, 24, 39, 0.88);
@@ -1103,28 +1105,28 @@ textarea {
 
 .candidate-video-empty strong {
   line-height: 1.1;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .candidate-video-empty span,
 .candidate-attention-row,
 .camera-error {
-  color: #cbd5e1;
+  color: var(--muted);
   font-size: 12px;
 }
 
 .candidate-camera-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
 .candidate-webcam-panel .icon-button {
-  width: 100%;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.18);
+  width: 42px;
+  height: 38px;
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
 }
 
 .candidate-attention-row {
@@ -1133,6 +1135,10 @@ textarea {
   gap: 7px;
   min-width: 0;
   font-weight: 700;
+}
+
+.camera-error {
+  grid-column: 1 / -1;
 }
 
 .candidate-attention-row span:last-child {
@@ -4065,10 +4071,8 @@ textarea {
 .site-page {
   min-height: 100vh;
   overflow-x: hidden;
-  background:
-    linear-gradient(180deg, rgba(255, 250, 243, 0.94), rgba(255, 253, 249, 0.98)),
-    var(--background);
-  color: #24141a;
+  background: #ffffff;
+  color: #050505;
 }
 
 .site-header,
@@ -4083,7 +4087,6 @@ textarea {
 .site-subpage-hero,
 .site-showcase,
 .site-card-grid,
-.pricing-layout,
 .resource-public-layout,
 .about-note-card,
 .site-footer {
@@ -4096,17 +4099,17 @@ textarea {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 24px;
-  min-height: 96px;
+  min-height: 92px;
+  border-bottom: 1px solid #d9d9d9;
 }
 
 .site-brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: var(--accent-strong);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 34px;
-  font-weight: 800;
+  color: #050505;
+  font-size: 40px;
+  font-weight: 950;
   letter-spacing: 0;
 }
 
@@ -4124,15 +4127,15 @@ textarea {
 
 .site-nav {
   justify-content: center;
-  gap: 34px;
-  color: #33262b;
-  font-size: 15px;
-  font-weight: 800;
+  gap: 48px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 850;
 }
 
 .site-nav a:hover,
 .site-sign-in:hover {
-  color: var(--accent-strong);
+  color: #db2777;
 }
 
 .site-auth {
@@ -4141,7 +4144,7 @@ textarea {
 }
 
 .site-sign-in {
-  color: #33262b;
+  color: #0f172a;
   font-weight: 800;
 }
 
@@ -4165,48 +4168,42 @@ textarea {
 }
 
 .site-button-primary {
-  background: linear-gradient(180deg, #9f1239, #74112f);
+  background: linear-gradient(180deg, #f43f8f, #db2777);
   color: white;
-  box-shadow: 0 16px 34px rgba(143, 18, 56, 0.18);
+  box-shadow: 0 16px 34px rgba(219, 39, 119, 0.2);
 }
 
 .site-button-secondary {
-  border-color: rgba(143, 18, 56, 0.24);
-  background: rgba(255, 253, 249, 0.72);
-  color: var(--accent-strong);
+  border-color: #cbd5e1;
+  background: #ffffff;
+  color: #050505;
 }
 
 .site-button-light {
-  background: #fffaf3;
-  color: var(--accent-strong);
-}
-
-.site-pill {
-  display: inline-flex;
-  width: fit-content;
-  align-items: center;
-  gap: 9px;
-  border: 1px solid rgba(143, 18, 56, 0.16);
-  border-radius: 999px;
-  padding: 8px 13px;
-  background: rgba(255, 250, 243, 0.78);
-  color: var(--accent-strong);
-  font-size: 13px;
-  font-weight: 900;
+  background: #ffffff;
+  color: #db2777;
 }
 
 .site-hero {
   display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(620px, 1fr);
-  gap: 56px;
+  grid-template-columns: minmax(420px, 0.62fr) minmax(720px, 1fr);
+  gap: 72px;
   align-items: center;
-  padding: 28px 0 34px;
+  padding: 76px 0 64px;
 }
 
 .site-hero-copy,
 .site-subpage-hero {
   display: grid;
   gap: 22px;
+}
+
+.site-hero-kicker {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .site-hero h1,
@@ -4220,15 +4217,15 @@ textarea {
 .final-marketing-cta h2,
 .about-note-card h2 {
   margin: 0;
-  color: #2b121c;
-  font-family: Georgia, "Times New Roman", serif;
+  color: #050505;
   letter-spacing: 0;
 }
 
 .site-hero h1 {
-  max-width: 640px;
-  font-size: clamp(58px, 6.8vw, 92px);
-  line-height: 0.95;
+  max-width: 620px;
+  font-size: clamp(64px, 6.9vw, 110px);
+  line-height: 0.92;
+  font-weight: 950;
 }
 
 .site-hero em,
@@ -4273,9 +4270,9 @@ textarea {
 .about-note-card p {
   max-width: 640px;
   margin: 0;
-  color: #4f4544;
-  font-size: 18px;
-  line-height: 1.65;
+  color: #4b5563;
+  font-size: 22px;
+  line-height: 1.35;
 }
 
 .site-action-row {
@@ -4303,11 +4300,12 @@ textarea {
 
 .product-mockup {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   overflow: hidden;
+  border: 7px solid #050505;
   border-radius: 14px;
-  background: #3b071c;
-  box-shadow: 0 30px 70px rgba(59, 7, 28, 0.18);
+  background: #ffffff;
+  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.12);
 }
 
 .product-mockup.compact {
@@ -4316,7 +4314,7 @@ textarea {
 }
 
 .mockup-sidebar {
-  display: grid;
+  display: none;
   justify-items: center;
   align-content: start;
   gap: 18px;
@@ -4337,17 +4335,18 @@ textarea {
 
 .mockup-main {
   min-width: 0;
-  color: white;
-  background: linear-gradient(135deg, #250614, #4b0b24 70%, #691038);
+  color: #050505;
+  background: #ffffff;
 }
 
 .mockup-topbar {
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 58px;
+  min-height: 68px;
   padding: 0 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid #e5e7eb;
+  color: #111827;
 }
 
 .mockup-live {
@@ -4369,18 +4368,18 @@ textarea {
 
 .mockup-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.82fr);
-  gap: 10px;
-  padding: 12px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(310px, 0.85fr);
+  gap: 16px;
+  padding: 18px;
 }
 
 .mockup-editor,
 .mockup-interview,
 .mockup-transcript,
 .results-preview-card {
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  background: rgba(15, 15, 18, 0.72);
+  background: #ffffff;
 }
 
 .mockup-tabs,
@@ -4389,7 +4388,7 @@ textarea {
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  color: #cbd5e1;
+  color: #6b7280;
   font-size: 13px;
 }
 
@@ -4397,7 +4396,7 @@ textarea {
   min-height: 278px;
   margin: 0;
   padding: 10px 22px 18px;
-  color: #e9d5ff;
+  color: #111827;
   font-size: 13px;
   line-height: 1.7;
   overflow: hidden;
@@ -4405,7 +4404,7 @@ textarea {
 
 .mockup-runbar {
   justify-content: space-between;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid #e5e7eb;
 }
 
 .mockup-runbar span,
@@ -4416,23 +4415,23 @@ textarea {
 }
 
 .mockup-runbar span {
-  color: #86efac;
+  color: #059669;
 }
 
 .mockup-runbar button {
   min-height: 34px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   padding: 0 12px;
-  background: rgba(255, 255, 255, 0.04);
-  color: white;
+  background: #ffffff;
+  color: #111827;
 }
 
 .mockup-interview {
   display: grid;
   gap: 10px;
   padding: 10px;
-  background: rgba(59, 7, 28, 0.58);
+  background: #f9fafb;
 }
 
 .mockup-video {
@@ -4464,14 +4463,14 @@ textarea {
   display: grid;
   gap: 10px;
   padding: 12px;
-  color: #f8fafc;
+  color: #111827;
   font-size: 13px;
 }
 
 .mockup-transcript div {
   display: flex;
   gap: 18px;
-  color: #fda4af;
+  color: #db2777;
 }
 
 .mockup-transcript p {
@@ -4490,15 +4489,15 @@ textarea {
   display: grid;
   place-items: center;
   border-radius: 7px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #f8fafc;
+  background: #f3f4f6;
+  color: #111827;
   font-size: 12px;
   font-weight: 800;
 }
 
 .mockup-footer .active {
-  background: #fffdf9;
-  color: #2b121c;
+  background: #ffe4ef;
+  color: #be185d;
 }
 
 .site-facts {
@@ -4566,7 +4565,6 @@ textarea {
 
 .site-feature-grid article,
 .site-card-grid article,
-.pricing-card,
 .resource-drill-card,
 .resource-topic-card,
 .about-note-card {
@@ -4748,16 +4746,6 @@ textarea {
   box-shadow: 0 22px 60px rgba(143, 18, 56, 0.2);
 }
 
-.deep-red-card::after {
-  content: "✦";
-  position: absolute;
-  right: 24px;
-  top: -18px;
-  color: rgba(255, 255, 255, 0.12);
-  font-size: 210px;
-  line-height: 1;
-}
-
 .deep-red-card h3 {
   color: white;
   font-size: clamp(36px, 4vw, 56px);
@@ -4817,62 +4805,12 @@ textarea {
   font-weight: 900;
 }
 
-.pricing-layout {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
-  padding: 24px 0 70px;
-}
-
-.pricing-card {
-  display: grid;
-  gap: 18px;
-  align-content: start;
-  padding: 28px;
-}
-
-.pricing-card.featured {
-  border-color: rgba(143, 18, 56, 0.26);
-  background: #fffdf9;
-}
-
-.pricing-card > span {
-  color: var(--accent-strong);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.pricing-card h2 {
-  margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 52px;
-}
-
-.pricing-card p {
-  margin: 0;
-  color: #6f635b;
-}
-
-.pricing-card ul,
 .resource-drill-card ul {
   display: grid;
   gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.pricing-card li {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.pricing-card li svg {
-  color: var(--accent);
-  flex: 0 0 auto;
 }
 
 .resource-public-layout {
@@ -4987,7 +4925,6 @@ textarea {
   .site-subpage-hero,
   .site-showcase,
   .site-card-grid,
-  .pricing-layout,
   .resource-public-layout,
   .about-note-card,
   .site-footer {
@@ -5042,7 +4979,6 @@ textarea {
   .site-feature-grid,
   .site-how-section ol,
   .site-card-grid,
-  .pricing-layout,
   .site-truth-grid,
   .site-footer {
     grid-template-columns: 1fr;

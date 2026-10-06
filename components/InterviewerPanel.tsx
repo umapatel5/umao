@@ -51,9 +51,9 @@ export function InterviewerPanel({
         ) : (
           <InterviewerAvatar playback={avatarPlayback} state={avatarState} />
         )}
-
-        <CandidateWebcamPanel onMetricsChange={onWebcamMetricsChange} speakingMetrics={speakingMetrics} />
       </div>
+
+      <CandidateWebcamPanel onMetricsChange={onWebcamMetricsChange} speakingMetrics={speakingMetrics} />
 
       <div className="media-status-row">
         <span>

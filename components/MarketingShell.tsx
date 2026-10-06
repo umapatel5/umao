@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
 type MarketingShellProps = {
   children: React.ReactNode;
@@ -8,7 +7,6 @@ type MarketingShellProps = {
 const navItems = [
   { href: "/product", label: "Product" },
   { href: "/use-cases", label: "Use Cases" },
-  { href: "/pricing", label: "Pricing" },
   { href: "/resources", label: "Resources" },
   { href: "/about", label: "About" }
 ];
@@ -18,7 +16,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
     <main className="site-page">
       <header className="site-header">
         <Link className="site-brand" href="/">
-          <span>Umao</span>
+          <span>umao</span>
         </Link>
 
         <nav className="site-nav" aria-label="Public navigation">
@@ -30,12 +28,8 @@ export function MarketingShell({ children }: MarketingShellProps) {
         </nav>
 
         <div className="site-auth">
-          <Link className="site-sign-in" href="/login">
-            Sign in
-          </Link>
-          <Link className="site-button site-button-primary" href="/signup">
-            Get started
-            <ArrowRight aria-hidden size={17} />
+          <Link className="site-button site-button-primary" href="/login">
+            Login / Sign up
           </Link>
         </div>
       </header>
@@ -45,7 +39,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
       <footer className="site-footer">
         <div>
           <Link className="site-brand" href="/">
-            <span>Umao</span>
+            <span>umao</span>
           </Link>
           <p>Technical interview practice built for clearer thinking, better communication, and real improvement.</p>
         </div>
@@ -53,7 +47,6 @@ export function MarketingShell({ children }: MarketingShellProps) {
           <strong>Product</strong>
           <Link href="/product">Interview room</Link>
           <Link href="/use-cases">Use cases</Link>
-          <Link href="/pricing">Pricing</Link>
         </div>
         <div>
           <strong>Resources</strong>

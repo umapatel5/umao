@@ -15,7 +15,6 @@ export default function ProductPage() {
   return (
     <MarketingShell>
       <section className="site-subpage-hero">
-        <span className="site-pill">Product</span>
         <h1>
           A complete mock interview room, not just a code editor.
         </h1>
