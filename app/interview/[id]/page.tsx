@@ -10,21 +10,23 @@ import {
 } from "@/lib/problems/problem-library";
 
 type InterviewPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
-  searchParams?: {
+  }>;
+  searchParams?: Promise<{
     difficulty?: string;
     role?: string;
     topic?: string;
-  };
+  }>;
 };
 
-export default function InterviewPage({ params, searchParams }: InterviewPageProps) {
-  const problem = getProblemById(params.id);
-  const role = getInterviewRole(searchParams?.role);
-  const selectedDifficulty = getProblemDifficulty(searchParams?.difficulty) ?? problem.difficulty;
-  const selectedTopic = getProblemCategory(searchParams?.topic) ?? problem.topics[0];
+export default async function InterviewPage({ params, searchParams }: InterviewPageProps) {
+  const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const problem = getProblemById(id);
+  const role = getInterviewRole(resolvedSearchParams?.role);
+  const selectedDifficulty = getProblemDifficulty(resolvedSearchParams?.difficulty) ?? problem.difficulty;
+  const selectedTopic = getProblemCategory(resolvedSearchParams?.topic) ?? problem.topics[0];
 
   return (
     <AppShell active="interview">

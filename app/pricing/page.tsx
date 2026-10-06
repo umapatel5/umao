@@ -53,7 +53,9 @@ export default function PricingPage() {
         <article className="pricing-card">
           <span>Future option</span>
           <h2>Pro</h2>
-          <p>Not available yet. This is a placeholder for features that could become paid later.</p>
+          <p>
+            No paid plan is active today. These are roadmap ideas for a hosted version if Umao grows beyond the beta.
+          </p>
           <ul>
             {futureFeatures.map((feature) => (
               <li key={feature}>

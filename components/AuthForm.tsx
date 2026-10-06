@@ -39,7 +39,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
 
-      window.location.href = "/practice";
+      window.location.href = "/dashboard";
     } catch {
       setError("Could not reach the account service.");
     } finally {

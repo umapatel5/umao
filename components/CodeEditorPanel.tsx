@@ -135,7 +135,7 @@ export function CodeEditorPanel({
           <h2 className="section-title" id="editor-title">
             Solution workspace
           </h2>
-          <div className="meta">Monaco Editor mount target</div>
+          <div className="meta">Write and test your solution in the selected language.</div>
         </div>
 
         <label className="language-select">
@@ -154,12 +154,10 @@ export function CodeEditorPanel({
         </label>
       </div>
 
-      <div className="editor-placeholder monaco-shell" data-editor-target="monaco">
+      <div className="editor-shell monaco-shell" data-editor-target="monaco">
         <div className="editor-tabs">
           <span className="editor-tab">{activeLanguage.fileName}</span>
-          <span className={activeLanguage.label === "Python" ? "pill pill-ready" : "pill"}>
-            {activeLanguage.label === "Python" ? "Python runner ready" : "Runner coming later"}
-          </span>
+          <span className="pill pill-ready">{activeLanguage.label} runner ready</span>
         </div>
         <div className="monaco-editor-frame">
           <Editor
@@ -235,7 +233,7 @@ function ExecutionConsole({
         ) : null}
       </div>
 
-      {isRunning ? <ConsoleNotice tone="neutral" message="Running Python test cases..." /> : null}
+      {isRunning ? <ConsoleNotice tone="neutral" message={`Running ${selectedLanguage} test cases...`} /> : null}
       {error ? <ConsoleNotice tone="warning" message={error} /> : null}
 
       {result?.error ? <ConsoleNotice tone="warning" message={result.error} /> : null}

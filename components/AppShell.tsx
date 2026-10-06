@@ -8,10 +8,10 @@ type AppShellProps = {
 };
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
   { href: "/practice", label: "Practice", icon: Braces, key: "practice" },
   { href: "/history", label: "History", icon: History, key: "history" },
-  { href: "/results/system-design-lite", label: "Results", icon: BarChart3, key: "results" },
+  { href: "/results", label: "Results", icon: BarChart3, key: "results" },
   { href: "/resources", label: "Resources", icon: BookOpen, key: "resources" },
   { href: "/settings", label: "Settings", icon: Settings, key: "settings" }
 ] as const;
@@ -20,7 +20,7 @@ export function AppShell({ children, active }: AppShellProps) {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <Link className="brand" href="/">
+        <Link className="brand" href="/dashboard">
           <span>umao</span>
         </Link>
 

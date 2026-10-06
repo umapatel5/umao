@@ -1,5 +1,5 @@
 const runnerUrl = process.env.CODE_RUNNER_TEST_URL ?? "http://127.0.0.1:8080/run";
-const token = process.env.CODE_RUNNER_SERVICE_TOKEN;
+const token = process.env.CODE_RUNNER_SERVICE_TOKEN ?? "local-dev-runner-token";
 
 const problem = {
   id: "two-sum-follow-up",
@@ -121,18 +121,28 @@ for (const [language, code] of timeoutCases) {
 console.log(JSON.stringify(summary, null, 2));
 
 async function run(language, code) {
-  const response = await fetch(runnerUrl, {
-    body: JSON.stringify({
-      code,
-      language,
-      problem
-    }),
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
-    },
-    method: "POST"
-  });
+  let response;
+
+  try {
+    response = await fetch(runnerUrl, {
+      body: JSON.stringify({
+        code,
+        language,
+        problem
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      method: "POST"
+    });
+  } catch (error) {
+    throw new Error(
+      `Could not reach Umao code runner at ${runnerUrl}. Start it with ` +
+        "`docker compose -f docker-compose.runner.yml up --build` before running `npm run test`. " +
+        `Original error: ${error instanceof Error ? error.message : "unknown network error"}`
+    );
+  }
 
   const body = await response.json();
 

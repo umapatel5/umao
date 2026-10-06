@@ -5,12 +5,14 @@ import { PageHeader } from "@/components/PageHeader";
 import { ResultsReview } from "@/components/ResultsReview";
 
 type ResultsPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
-export default function ResultsPage({ params }: ResultsPageProps) {
+export default async function ResultsPage({ params }: ResultsPageProps) {
+  const { id } = await params;
+
   return (
     <AppShell active="results">
       <PageHeader
@@ -31,7 +33,7 @@ export default function ResultsPage({ params }: ResultsPageProps) {
         }
       />
 
-      <ResultsReview sessionId={params.id} />
+      <ResultsReview sessionId={id} />
     </AppShell>
   );
 }

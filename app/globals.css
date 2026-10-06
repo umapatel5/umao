@@ -1417,7 +1417,7 @@ textarea {
   border-bottom: 1px solid var(--line);
 }
 
-.editor-placeholder {
+.editor-shell {
   min-height: 440px;
   background: var(--code);
   color: #dbeafe;
@@ -1760,6 +1760,27 @@ textarea {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+.analytics-empty-state {
+  display: grid;
+  gap: 6px;
+  border: 1px dashed rgba(143, 18, 56, 0.22);
+  border-radius: 8px;
+  padding: 16px;
+  background: rgba(255, 250, 243, 0.72);
+}
+
+.analytics-empty-state strong {
+  color: var(--accent-strong);
+  font-size: 15px;
+}
+
+.analytics-empty-state p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .trend-card {

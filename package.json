@@ -6,15 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "node scripts/verify-code-runner.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.92.0",
     "@monaco-editor/react": "^4.7.0",
     "lucide-react": "^0.468.0",
-    "next": "^14.2.5",
+    "monaco-editor": "^0.57.0",
+    "next": "^15.5.24",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -23,7 +24,12 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.5",
+    "eslint-config-next": "^15.5.24",
     "typescript": "^5.5.3"
+  },
+  "overrides": {
+    "es-iterator-helpers": "1.2.1",
+    "js-yaml": "4.3.2",
+    "postcss": "8.5.28"
   }
 }

@@ -90,7 +90,8 @@ export async function loginUser({
 }
 
 export async function logoutUser() {
-  const sessionId = cookies().get(sessionCookieName)?.value;
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get(sessionCookieName)?.value;
 
   if (!sessionId) {
     return;
@@ -102,7 +103,8 @@ export async function logoutUser() {
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  const sessionId = cookies().get(sessionCookieName)?.value;
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get(sessionCookieName)?.value;
 
   if (!sessionId) {
     return null;
@@ -119,8 +121,10 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   return user ? toAuthUser(user) : null;
 }
 
-export function setExistingSessionCookie(session: StoredSession) {
-  cookies().set(sessionCookieName, session.id, {
+export async function setExistingSessionCookie(session: StoredSession) {
+  const cookieStore = await cookies();
+
+  cookieStore.set(sessionCookieName, session.id, {
     httpOnly: true,
     maxAge: Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000)),
     path: "/",
@@ -129,8 +133,10 @@ export function setExistingSessionCookie(session: StoredSession) {
   });
 }
 
-export function clearSessionCookie() {
-  cookies().delete(sessionCookieName);
+export async function clearSessionCookie() {
+  const cookieStore = await cookies();
+
+  cookieStore.delete(sessionCookieName);
 }
 
 function createSession(userId: string): StoredSession {
