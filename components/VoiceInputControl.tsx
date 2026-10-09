@@ -64,11 +64,16 @@ export function VoiceInputControl({
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const finalTranscriptRef = useRef("");
   const interimTranscriptRef = useRef("");
+  const micPermissionGrantedRef = useRef(false);
   const speakingMetricsRef = useRef<SpeakingMetrics>(emptySpeakingMetrics);
+  const userStoppedRecordingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [interimTranscript, setInterimTranscript] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [lastTranscript, setLastTranscript] = useState("");
+  const [statusMessage, setStatusMessage] = useState(
+    "Voice input is ready when your browser supports speech recognition."
+  );
 
   async function startRecording() {
     setError(null);
@@ -76,6 +81,9 @@ export function VoiceInputControl({
     setLastTranscript("");
     finalTranscriptRef.current = "";
     interimTranscriptRef.current = "";
+    micPermissionGrantedRef.current = false;
+    userStoppedRecordingRef.current = false;
+    setStatusMessage("Checking microphone access...");
     stopInterviewerSpeech();
 
     const SpeechRecognition =
@@ -83,14 +91,18 @@ export function VoiceInputControl({
 
     if (!SpeechRecognition) {
       setError("Speech recognition is not supported in this browser. Use typed input instead.");
+      setStatusMessage("Typed input is still available.");
       return;
     }
 
     try {
       const stream = await navigator.mediaDevices?.getUserMedia({ audio: true });
       stream?.getTracks().forEach((track) => track.stop());
+      micPermissionGrantedRef.current = true;
+      setStatusMessage("Microphone is allowed. Start speaking when the listening state appears.");
     } catch {
       setError("Microphone permission was denied. You can still type your response.");
+      setStatusMessage("Typed input is still available.");
       setIsListening(false);
       onListeningChange?.(false);
       return;
@@ -125,7 +137,21 @@ export function VoiceInputControl({
     };
 
     recognition.onerror = (event) => {
-      setError(getSpeechErrorMessage(event.error));
+      const transcript = getCurrentTranscript();
+
+      if (event.error === "aborted" && userStoppedRecordingRef.current) {
+        return;
+      }
+
+      if (transcript) {
+        setLastTranscript(transcript);
+        onTranscriptReady(transcript);
+        setError(null);
+      } else {
+        setError(getSpeechErrorMessage(event.error, micPermissionGrantedRef.current));
+      }
+
+      setStatusMessage("Typed input is still available if speech recognition keeps failing.");
       setIsListening(false);
       onListeningChange?.(false);
     };
@@ -134,7 +160,7 @@ export function VoiceInputControl({
       setIsListening(false);
       onListeningChange?.(false);
       updateSpeakingMetrics(recordSpeakingPause(speakingMetricsRef.current));
-      const transcript = `${finalTranscriptRef.current} ${interimTranscriptRef.current}`.trim();
+      const transcript = getCurrentTranscript();
 
       if (transcript) {
         setLastTranscript(transcript);
@@ -142,6 +168,11 @@ export function VoiceInputControl({
         interimTranscriptRef.current = "";
         finalTranscriptRef.current = "";
         onTranscriptReady(transcript);
+        setError(null);
+        setStatusMessage("Transcript added below. Review or edit it, then press Send.");
+      } else if (userStoppedRecordingRef.current) {
+        setError("No transcript was captured. Try speaking for a few seconds before pressing Stop, or type your response.");
+        setStatusMessage("Microphone permission is allowed, but speech-to-text did not capture words.");
       }
     };
 
@@ -149,10 +180,13 @@ export function VoiceInputControl({
     recognition.start();
     updateSpeakingMetrics(startSpeakingSession(speakingMetricsRef.current));
     setIsListening(true);
+    setStatusMessage("Listening... speak clearly, then press Stop when you are done.");
     onListeningChange?.(true);
   }
 
   function stopRecording() {
+    userStoppedRecordingRef.current = true;
+    setStatusMessage("Processing your transcript...");
     recognitionRef.current?.stop();
     recognitionRef.current = null;
     setIsListening(false);
@@ -162,6 +196,10 @@ export function VoiceInputControl({
   function updateSpeakingMetrics(metrics: SpeakingMetrics) {
     speakingMetricsRef.current = metrics;
     onSpeakingMetricsChange?.(metrics);
+  }
+
+  function getCurrentTranscript() {
+    return `${finalTranscriptRef.current} ${interimTranscriptRef.current}`.trim();
   }
 
   return (
@@ -188,11 +226,7 @@ export function VoiceInputControl({
       </div>
 
       <div className={isListening ? "voice-status listening" : "voice-status"}>
-        {isListening
-          ? "Listening..."
-          : lastTranscript
-            ? "Transcript added below. Review or edit it, then press Send."
-            : "Voice input is ready when your browser supports speech recognition."}
+        {statusMessage}
       </div>
 
       {interimTranscript ? <div className="voice-preview">{interimTranscript}</div> : null}
@@ -201,18 +235,30 @@ export function VoiceInputControl({
   );
 }
 
-function getSpeechErrorMessage(error?: string) {
+function getSpeechErrorMessage(error?: string, micPermissionGranted = false) {
   if (error === "not-allowed" || error === "service-not-allowed") {
-    return "Microphone permission was denied. You can still type your response.";
+    return micPermissionGranted
+      ? "Your microphone is allowed, but browser speech recognition is blocked or unavailable. Try Chrome, refresh, or use typed input."
+      : "Microphone permission was denied. You can still type your response.";
   }
 
   if (error === "no-speech") {
-    return "No speech was detected. Try recording again or type your response.";
+    return "No speech was detected. Speak for a few seconds before pressing Stop, or type your response.";
   }
 
   if (error === "audio-capture") {
     return "No microphone was detected. Check your input device or type your response.";
   }
 
-  return "Transcription failed. Try again or use typed input.";
+  if (error === "network") {
+    return "Your microphone is allowed, but the browser speech-recognition service could not connect. Refresh, try Chrome, or use typed input.";
+  }
+
+  if (error === "aborted") {
+    return "Recording stopped before speech recognition returned text. Try again and speak for a few seconds first.";
+  }
+
+  return micPermissionGranted
+    ? "Your microphone is allowed, but speech recognition failed. Try again, refresh the page, or use typed input."
+    : "Transcription failed. Try again or use typed input.";
 }

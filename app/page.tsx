@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, CheckCircle2, Code2, MessageCircle, PlayCircle, ShieldCheck, Target } from "lucide-react";
+import { ArrowRight, BarChart3, CheckCircle2, Code2, MessageCircle, ShieldCheck, Target } from "lucide-react";
 import { InterviewProductMockup } from "@/components/InterviewProductMockup";
+import { MarketingDemoModal } from "@/components/MarketingDemoModal";
 import { MarketingShell } from "@/components/MarketingShell";
 
 const productFacts = [
@@ -33,6 +34,27 @@ const features = [
   }
 ];
 
+const workflowSteps = [
+  {
+    step: "01",
+    title: "Choose the interview you want to practice.",
+    copy: "Pick a role, difficulty, and topic so the coding prompt and interviewer questions match what you are preparing for.",
+    visual: "Role setup"
+  },
+  {
+    step: "02",
+    title: "Code while the interviewer follows your process.",
+    copy: "Run test cases, explain your approach, ask for hints, and keep the conversation moving like a real technical screen.",
+    visual: "Live workspace"
+  },
+  {
+    step: "03",
+    title: "Walk away knowing what to improve next.",
+    copy: "Umao turns coding results, communication signals, and interview history into feedback you can actually practice from.",
+    visual: "Score report"
+  }
+];
+
 export default function HomePage() {
   return (
     <MarketingShell>
@@ -51,10 +73,7 @@ export default function HomePage() {
               Get started
               <ArrowRight aria-hidden size={18} />
             </Link>
-            <Link className="site-button site-button-secondary site-button-large" href="/product">
-              <PlayCircle aria-hidden size={18} />
-              Watch the flow
-            </Link>
+            <MarketingDemoModal />
           </div>
           <div className="site-proof-row">
             <span>
@@ -85,14 +104,7 @@ export default function HomePage() {
         ))}
       </section>
 
-      <section className="site-feature-intro">
-        <span className="site-section-kicker">Built to help you improve</span>
-        <h2>
-          Real practice. Real <em>progress.</em>
-        </h2>
-      </section>
-
-      <section className="site-feature-grid">
+      <section className="site-feature-strip" aria-label="Umao product strengths">
         {features.map((feature) => {
           const Icon = feature.icon;
 
@@ -129,20 +141,41 @@ export default function HomePage() {
       </section>
 
       <section className="site-how-section" id="workflow">
-        <div>
+        <div className="site-how-heading">
           <span className="site-section-kicker">How Umao works</span>
           <h2>
-            See how a practice session <em>unfolds.</em>
+            Three steps to feel <em>prepared.</em>
           </h2>
+          <p>
+            Scroll through the practice flow: set your target, work through a live interview,
+            then use the report to decide what to practice next.
+          </p>
         </div>
-        <ol>
-          {["Choose role", "Solve live", "Speak with interviewer", "Review report"].map((step, index) => (
-            <li key={step}>
-              <span>{index + 1}</span>
-              <strong>{step}</strong>
-            </li>
+
+        <div className="site-workflow-scroll">
+          {workflowSteps.map((item) => (
+            <article className="site-workflow-step" key={item.step}>
+              <div className="site-workflow-copy">
+                <span>{item.step}</span>
+                <h3>{item.title}</h3>
+                <p>{item.copy}</p>
+              </div>
+              <div className="site-workflow-visual" aria-hidden>
+                <span>{item.visual}</span>
+                <div className="workflow-visual-lines">
+                  <i />
+                  <i />
+                  <i />
+                </div>
+              </div>
+            </article>
           ))}
-        </ol>
+        </div>
+
+        <Link className="site-button site-button-primary site-button-large site-how-cta" href="/practice">
+          Start Practicing
+          <ArrowRight aria-hidden size={18} />
+        </Link>
       </section>
 
       <section className="site-results-section">
@@ -181,7 +214,7 @@ export default function HomePage() {
             <span><BarChart3 size={22} /> Feedback, not grades alone</span>
           </div>
         </div>
-        <div className="deep-red-card">
+        <div className="site-cta-card">
           <h3>Start practicing today</h3>
           <p>Try the current Umao beta and improve one mock interview at a time.</p>
           <Link className="site-button site-button-light" href="/practice">
