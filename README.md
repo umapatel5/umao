@@ -4,8 +4,31 @@ A Next.js TypeScript AI technical interview simulator with role-based practice s
 
 ## Demo
 
-- GitHub: https://github.com/uma5patel/umao
-- Live demo: deploy with Vercel from the GitHub repository, then add the permanent URL here.
+- [Source code](https://github.com/umapatel5/umao)
+- [Live website](https://umao.vercel.app/)
+
+**Live video availability:** The Tavus video interviewer integration is implemented, but live avatar sessions are currently paused because the provider's usage credits have run out. Additional credits are not enabled for this portfolio demo. This is a provider usage limit, rather than an unfinished avatar integration. The application includes a local avatar and browser speech fallback. Text AI responses require a configured, funded OpenAI account.
+
+The landing page includes an interactive Two Sum demo: edit JavaScript, run tests, reset the code, explore a sample conversation, and review test-based feedback. The portrait and conversation are previews, not a live video call. Code execution requires an available runner; the deployed website may have fewer capabilities than a fully configured local installation.
+
+## Tech Stack
+
+| Area | Technology |
+| --- | --- |
+| Application | Next.js 15 App Router, React 18, TypeScript |
+| Interface | CSS, Lucide icons, responsive layouts, scroll reveal effects |
+| Code editor | Monaco Editor through `@monaco-editor/react` |
+| AI interviewer | OpenAI Chat Completions API, isolated behind `lib/ai/interviewer.ts` |
+| Video interviewer | Tavus Echo Mode and Daily JavaScript SDK; Umao supplies the response text |
+| Candidate voice | Browser speech recognition; typed responses remain available |
+| Voice fallback | Browser Web Speech API (`speechSynthesis`) |
+| Camera signals | Browser camera access, face-detection support where available, local attention heuristics |
+| Accounts and history | Custom server-side authentication, Node.js scrypt password hashing, local JSON database |
+| Execution | Python, Node.js/JavaScript, Java, C++; separate runner service and Docker configuration |
+| Deployment | Vercel for the web app; AWS ECS/Fargate infrastructure templates for the runner |
+| Validation | TypeScript, ESLint, runner integration tests, GitHub Actions |
+
+Camera measurements estimate face presence and position; they are not identity recognition or a validated measure of ability. No raw webcam video or microphone audio is saved by Umao's history database.
 
 Umao is built as an end-to-end technical interview practice platform: candidates choose a role and coding problem, solve in a Monaco-powered workspace, talk with an AI interviewer, receive scored feedback, and review saved interview history.
 
@@ -107,20 +130,21 @@ Never commit real API keys, AWS credentials, raw webcam video, or microphone aud
 
 Umao is prepared for Vercel preview deployments. For a permanent public demo:
 
-1. Import `uma5patel/umao` into Vercel.
+1. Import `umapatel5/umao` into Vercel.
 2. Keep optional secrets such as `OPENAI_API_KEY` and Tavus values in Vercel environment variables.
-3. Leave code runner variables blank for the built-in development fallback, or point them at a private runner service.
-4. Deploy from the `main` branch and copy the Vercel URL into the demo section above.
+3. Configure a private runner service for production code execution; the local fallback depends on installed language runtimes and is not a production sandbox.
+4. Deploy from the `main` branch. Local edits become live only after a deployment succeeds.
 
 The local JSON database is for development/demo use only. Production should use a managed database before storing real user history.
 
 ## Current Status
 
-- Public homepage, product, use cases, pricing, resources, and about pages are implemented.
+- A pink-and-white landing page with an inline interactive demo leads into login/sign-up and the interview application.
 - Auth, local persistence, saved history, scoring, and progress analytics are implemented for local development.
 - Python, JavaScript, Java, and C++ execution paths are implemented locally and through the Docker runner.
 - Voice input, browser speech fallback, Tavus avatar fallback, and webcam signal tracking are implemented without storing raw media.
-- Production dependency audit is clean.
+- Tavus live video is paused due to exhausted usage credits. Browser voice quality and face-detection availability depend on the browser/device.
+- AWS templates and Docker configuration are included; this does not mean AWS resources are deployed. The workflow validates changes and gates future deployment work.
 
 ## Future Integration Points
 

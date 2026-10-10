@@ -21,6 +21,69 @@ export const problemCategories: ProblemCategory[] = [
 
 export const codingProblems: CodingProblem[] = [
   {
+    id: "contains-duplicate", title: "Contains Duplicate", difficulty: "Easy",
+    durationMinutes: 20, topics: ["Arrays", "Hash Maps"],
+    functionName: { camel: "containsDuplicate", snake: "contains_duplicate" },
+    prompt: "Return true if any integer appears more than once in the array, and false otherwise.",
+    constraints: ["The array may be empty.", "Do not modify the input.", "Discuss time and space trade-offs."],
+    examples: [{ input: "nums = [1, 2, 3, 1]", output: "true" }],
+    interviewerPrompt: "Ask how a set compares with sorting, and what happens on an empty array.",
+    testCases: [
+      { name: "Duplicate", input: [[1, 2, 3, 1]], expected: true },
+      { name: "Unique", input: [[1, 2, 3]], expected: false },
+      { name: "Empty", input: [[]], expected: false },
+      { name: "Negative duplicate", input: [[-1, 0, -1]], expected: true }
+    ],
+    starterCode: {
+      Python: "def contains_duplicate(nums):\n    return False",
+      JavaScript: "function containsDuplicate(nums) {\n  return false;\n}",
+      Java: "class Solution {\n    public boolean containsDuplicate(int[] nums) {\n        return false;\n    }\n}",
+      "C++": "#include <vector>\nusing namespace std;\nbool containsDuplicate(vector<int> nums) {\n    return false;\n}"
+    }
+  },
+  {
+    id: "maximum-subarray", title: "Maximum Subarray", difficulty: "Medium",
+    durationMinutes: 35, topics: ["Arrays", "Dynamic Programming"],
+    functionName: { camel: "maxSubArray", snake: "max_sub_array" },
+    prompt: "Return the largest sum of any non-empty contiguous subarray.",
+    constraints: ["The input contains at least one integer.", "Values may be negative.", "Aim for O(n) time."],
+    examples: [{ input: "nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]", output: "6" }],
+    interviewerPrompt: "Ask when to restart a running sum and how an all-negative array affects initialization.",
+    testCases: [
+      { name: "Mixed values", input: [[-2, 1, -3, 4, -1, 2, 1, -5, 4]], expected: 6 },
+      { name: "All negative", input: [[-4, -2, -7]], expected: -2 },
+      { name: "Single value", input: [[5]], expected: 5 },
+      { name: "All positive", input: [[1, 2, 3]], expected: 6 }
+    ],
+    starterCode: {
+      Python: "def max_sub_array(nums):\n    return 0",
+      JavaScript: "function maxSubArray(nums) {\n  return 0;\n}",
+      Java: "class Solution {\n    public int maxSubArray(int[] nums) {\n        return 0;\n    }\n}",
+      "C++": "#include <vector>\nusing namespace std;\nint maxSubArray(vector<int> nums) {\n    return 0;\n}"
+    }
+  },
+  {
+    id: "valid-parentheses", title: "Valid Parentheses", difficulty: "Easy",
+    durationMinutes: 25, topics: ["Strings"],
+    functionName: { camel: "isValid", snake: "is_valid" },
+    prompt: "Given a string containing only (), [] and {}, return whether every bracket closes in the correct order.",
+    constraints: ["An empty string is valid.", "Each closing bracket must match the most recent opening bracket."],
+    examples: [{ input: 's = "([])"', output: "true" }, { input: 's = "([)]"', output: "false" }],
+    interviewerPrompt: "Ask why a stack fits this problem and whether counting brackets alone is sufficient.",
+    testCases: [
+      { name: "Nested", input: ["([])"], expected: true },
+      { name: "Wrong order", input: ["([)]"], expected: false },
+      { name: "Unclosed", input: ["(("], expected: false },
+      { name: "Empty", input: [""], expected: true }
+    ],
+    starterCode: {
+      Python: "def is_valid(s):\n    return False",
+      JavaScript: "function isValid(s) {\n  return false;\n}",
+      Java: "class Solution {\n    public boolean isValid(String s) {\n        return false;\n    }\n}",
+      "C++": "#include <string>\nusing namespace std;\nbool isValid(string s) {\n    return false;\n}"
+    }
+  },
+  {
     id: "two-sum-follow-up",
     title: "Two Sum With Interview Follow-up",
     difficulty: "Easy",

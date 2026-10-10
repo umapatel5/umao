@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "InterviewOS",
-  description: "AI technical interview simulator shell"
+  title: "Umao",
+  description: "Warm technical interview practice for coding, communication, and feedback."
 };
 
 export default function RootLayout({

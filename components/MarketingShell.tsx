@@ -4,13 +4,6 @@ type MarketingShellProps = {
   children: React.ReactNode;
 };
 
-const navItems = [
-  { href: "/product", label: "Product" },
-  { href: "/use-cases", label: "Use Cases" },
-  { href: "/resources", label: "Resources" },
-  { href: "/about", label: "About" }
-];
-
 export function MarketingShell({ children }: MarketingShellProps) {
   return (
     <main className="site-page">
@@ -18,14 +11,6 @@ export function MarketingShell({ children }: MarketingShellProps) {
         <Link className="site-brand" href="/">
           <span>umao</span>
         </Link>
-
-        <nav className="site-nav" aria-label="Public navigation">
-          {navItems.map((item) => (
-            <Link href={item.href} key={item.href}>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
 
         <div className="site-auth">
           <Link className="site-button site-button-primary" href="/login">
@@ -41,24 +26,12 @@ export function MarketingShell({ children }: MarketingShellProps) {
           <Link className="site-brand" href="/">
             <span>umao</span>
           </Link>
-          <p>Technical interview practice built for clearer thinking, better communication, and real improvement.</p>
+          <p>A soft place to rehearse the interview before the real one.</p>
         </div>
-        <div>
-          <strong>Product</strong>
-          <Link href="/product">Interview room</Link>
-          <Link href="/use-cases">Use cases</Link>
-        </div>
-        <div>
-          <strong>Resources</strong>
-          <Link href="/resources">Practice guides</Link>
-          <Link href="/practice">Start practice</Link>
-          <Link href="/history">History</Link>
-        </div>
-        <div>
-          <strong>Company</strong>
-          <Link href="/about">About</Link>
-          <Link href="/login">Sign in</Link>
-          <Link href="/signup">Create account</Link>
+        <div className="site-footer-actions">
+          <Link href="/login">Login</Link>
+          <Link href="/signup">Sign up</Link>
+          <Link href="/practice">Open app</Link>
         </div>
       </footer>
     </main>

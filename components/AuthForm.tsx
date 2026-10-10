@@ -51,10 +51,11 @@ export function AuthForm({ mode }: AuthFormProps) {
     <section className="auth-page-shell">
       <div className="card panel auth-card">
         <div>
-          <p className="page-kicker">Umao account</p>
+          <Link className="auth-home-link" href="/">umao</Link>
+          <p className="page-kicker">Your practice space</p>
           <h1 className="page-title">{mode === "signup" ? "Create your account" : "Welcome back"}</h1>
           <p className="page-copy">
-            Save interview results, review prior sessions, and track progress over time.
+            Save interview results, revisit feedback, and keep practicing at your own pace.
           </p>
         </div>
 

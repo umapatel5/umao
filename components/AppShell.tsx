@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Bell, BookOpen, Braces, History, LayoutDashboard, Settings } from "lucide-react";
+import { BarChart3, Bell, Braces, History, House, LayoutDashboard, Settings } from "lucide-react";
 import { AuthStatus } from "@/components/AuthStatus";
 
 type AppShellProps = {
@@ -12,19 +12,22 @@ const navItems = [
   { href: "/practice", label: "Practice", icon: Braces, key: "practice" },
   { href: "/history", label: "History", icon: History, key: "history" },
   { href: "/results", label: "Results", icon: BarChart3, key: "results" },
-  { href: "/resources", label: "Resources", icon: BookOpen, key: "resources" },
   { href: "/settings", label: "Settings", icon: Settings, key: "settings" }
 ] as const;
 
 export function AppShell({ children, active }: AppShellProps) {
   return (
-    <div className="app-shell">
+    <div className={`app-shell app-view-${active}`}>
       <header className="topbar">
         <Link className="brand" href="/dashboard">
           <span>umao</span>
         </Link>
 
         <nav className="nav" aria-label="Primary navigation">
+          <Link href="/">
+            <House aria-hidden size={18} />
+            Home
+          </Link>
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -42,7 +45,6 @@ export function AppShell({ children, active }: AppShellProps) {
         </nav>
 
         <div className="topbar-actions">
-          <span className="streak-pill">12 day streak</span>
           <button className="icon-button" title="Notifications" type="button">
             <Bell aria-hidden size={17} />
           </button>

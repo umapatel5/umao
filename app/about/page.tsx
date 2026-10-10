@@ -20,7 +20,7 @@ const values = [
   },
   {
     title: "Engineering should stay modular",
-    copy: "Code execution, AI, speech, avatar, scoring, auth, and history are isolated so the product can grow.",
+    copy: "Code execution, speech, interviewer playback, scoring, auth, and history are isolated so the product can grow.",
     icon: Code2
   }
 ];
