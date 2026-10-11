@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AccountSettings } from "@/components/AccountSettings";
 import { CheckCircle2, RotateCcw, Save, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -197,6 +198,7 @@ export function SettingsPanel() {
             <strong>{user ? user.name : "Guest mode"}</strong>
             <span>{user ? user.email : "Sign in to persist interview results."}</span>
           </div>
+          {user ? <AccountSettings user={user} onChange={setUser} /> : null}
           <div className="settings-actions">
             {user ? (
               <Link className="button button-secondary" href="/history">

@@ -148,6 +148,25 @@ function createSession(userId: string): StoredSession {
   };
 }
 
+export async function updateAccount({ name, currentPassword, newPassword }: { name?: string; currentPassword?: string; newPassword?: string }) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return { error: "Sign in to change your account.", status: 401 };
+  if (name !== undefined && (name.trim().length < 2 || name.trim().length > 80)) return { error: "Name must be between 2 and 80 characters.", status: 400 };
+  if (newPassword !== undefined && (newPassword.length < 8 || newPassword.length > 128)) return { error: "New password must be between 8 and 128 characters.", status: 400 };
+  const sessionId = (await cookies()).get(sessionCookieName)?.value;
+  return updateDatabase((database) => {
+    const user = database.users.find((item) => item.id === currentUser.id);
+    if (!user) return { error: "Sign in again.", status: 401 };
+    if (newPassword !== undefined) {
+      if (!currentPassword || !verifyPassword(currentPassword, user.passwordHash)) return { error: "Current password is incorrect.", status: 400 };
+      user.passwordHash = hashPassword(newPassword);
+      database.sessions = database.sessions.filter((session) => session.userId !== user.id || session.id === sessionId);
+    }
+    if (name !== undefined) user.name = name.trim();
+    return { user: toAuthUser(user) };
+  });
+}
+
 function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(password, salt, 64).toString("hex");

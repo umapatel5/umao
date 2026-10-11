@@ -1,4 +1,5 @@
 import type { CodingProblem, InterviewRole, ProblemCategory, ProblemDifficulty } from "@/types/problem";
+import { additionalProblems } from "./additional-problems";
 
 export const problemDifficulties: ProblemDifficulty[] = ["Easy", "Medium", "Hard"];
 
@@ -20,6 +21,7 @@ export const problemCategories: ProblemCategory[] = [
 ];
 
 export const codingProblems: CodingProblem[] = [
+  ...additionalProblems,
   {
     id: "contains-duplicate", title: "Contains Duplicate", difficulty: "Easy",
     durationMinutes: 20, topics: ["Arrays", "Hash Maps"],

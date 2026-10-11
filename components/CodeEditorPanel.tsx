@@ -311,9 +311,5 @@ function getConsoleStatus(
     return `${result.results.filter((item) => item.passed).length}/${result.results.length} test cases passed in ${result.runtimeMs} ms.`;
   }
 
-  if (selectedLanguage !== "Python") {
-    return "Python execution is available first. Other runners are intentionally not wired yet.";
-  }
-
-  return "Run the Python solution against predefined test cases.";
+  return `Run your ${selectedLanguage} solution against predefined test cases.`;
 }

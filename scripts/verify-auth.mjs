@@ -32,6 +32,14 @@ try {
   assert((await auth.signUpUser({ email: "test@example.com", name: "Test", password: "test-password-only" })).error);
   sessionId = login.session.id;
   assert.equal((await auth.getCurrentUser()).id, signup.user.id);
+  assert((await auth.updateAccount({ newPassword: "updated-password", currentPassword: "wrong" })).error);
+  const updated = await auth.updateAccount({ name: "Updated Name", newPassword: "updated-password", currentPassword: "test-password-only" });
+  assert.equal(updated.user.name, "Updated Name");
+  assert((await auth.loginUser({ email: "test@example.com", password: "test-password-only" })).error);
+  assert((await auth.loginUser({ email: "test@example.com", password: "updated-password" })).user);
+  sessionId = signup.session.id;
+  assert.equal(await restartedAuth.getCurrentUser(), null);
+  sessionId = login.session.id;
   await auth.logoutUser();
   assert.equal(await auth.getCurrentUser(), null);
   env.VERCEL = "1";

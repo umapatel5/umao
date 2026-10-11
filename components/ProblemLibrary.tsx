@@ -19,21 +19,21 @@ import type { InterviewRole, ProblemCategory, ProblemDifficulty } from "@/types/
 
 export function ProblemLibrary() {
   const [role, setRole] = useState<InterviewRole>(defaultInterviewPreferences.role);
-  const [category, setCategory] = useState<ProblemCategory>(defaultInterviewPreferences.topic);
-  const [difficulty, setDifficulty] = useState<ProblemDifficulty>(
-    defaultInterviewPreferences.difficulty
+  const [category, setCategory] = useState<ProblemCategory | "All">("All");
+  const [difficulty, setDifficulty] = useState<ProblemDifficulty | "All">(
+    "All"
   );
   const randomProblem = useMemo(
-    () => getRandomProblem({ difficulty, topic: category }),
+    () => getRandomProblem({ difficulty: difficulty === "All" ? undefined : difficulty, topic: category === "All" ? undefined : category }),
     [category, difficulty]
   );
   const filteredProblems = codingProblems.filter((problem) => {
-    const categoryMatches = problem.topics.includes(category);
-    const difficultyMatches = problem.difficulty === difficulty;
+    const categoryMatches = category === "All" || problem.topics.includes(category);
+    const difficultyMatches = difficulty === "All" || problem.difficulty === difficulty;
 
     return categoryMatches && difficultyMatches;
   });
-  const displayProblems = filteredProblems.length ? filteredProblems : codingProblems.filter((problem) => problem.topics.includes(category));
+  const displayProblems = filteredProblems;
   const hasExactMatches = filteredProblems.length > 0;
 
   useEffect(() => {
@@ -46,8 +46,6 @@ export function ProblemLibrary() {
     try {
       const preferences = normalizeInterviewPreferences(JSON.parse(rawPreferences));
       setRole(preferences.role);
-      setCategory(preferences.topic);
-      setDifficulty(preferences.difficulty);
     } catch {
       window.localStorage.removeItem(interviewPreferencesStorageKey);
     }
@@ -71,7 +69,8 @@ export function ProblemLibrary() {
           </label>
           <label>
             <span>Difficulty</span>
-            <select onChange={(event) => setDifficulty(event.target.value as ProblemDifficulty)} value={difficulty}>
+            <select onChange={(event) => setDifficulty(event.target.value as ProblemDifficulty | "All")} value={difficulty}>
+              <option value="All">All difficulties</option>
               {problemDifficulties.map((item) => (
                 <option key={item}>{item}</option>
               ))}
@@ -79,13 +78,14 @@ export function ProblemLibrary() {
           </label>
           <label>
             <span>Topic</span>
-            <select onChange={(event) => setCategory(event.target.value as ProblemCategory)} value={category}>
+            <select onChange={(event) => setCategory(event.target.value as ProblemCategory | "All")} value={category}>
+              <option value="All">All topics</option>
               {problemCategories.map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>
           </label>
-          <Link className="button button-primary" href={buildInterviewHref(randomProblem.id, role, difficulty, category)}>
+          <Link className="button button-primary" href={buildInterviewHref(randomProblem.id, role, randomProblem.difficulty, category === "All" ? randomProblem.topics[0] : category)}>
             <Shuffle aria-hidden size={17} />
             Random Interview
           </Link>
@@ -94,7 +94,7 @@ export function ProblemLibrary() {
 
       {!hasExactMatches ? (
         <section className="console-notice warning">
-          No exact {difficulty} {category} prompt is available yet. Showing the closest {category} matches while preserving your selected setup context.
+          No problems match these filters. Try all difficulties or all topics.
         </section>
       ) : null}
 
@@ -123,7 +123,7 @@ export function ProblemLibrary() {
               </span>
               <span>{problem.durationMinutes} min</span>
               <span>{problem.testCases.length} tests</span>
-              <Link className="button button-secondary" href={buildInterviewHref(problem.id, role, difficulty, category)}>
+              <Link className="button button-secondary" href={buildInterviewHref(problem.id, role, problem.difficulty, category === "All" ? problem.topics[0] : category)}>
                 Start
               </Link>
             </div>

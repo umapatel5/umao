@@ -26,7 +26,7 @@ export function AppShell({ children, active }: AppShellProps) {
         <nav className="nav" aria-label="Primary navigation">
           <Link href="/">
             <House aria-hidden size={18} />
-            Home
+            Back to website
           </Link>
           {navItems.map((item) => {
             const Icon = item.icon;

@@ -10,11 +10,14 @@ export function AuthStatus({ marketing = false }: { marketing?: boolean }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/auth/me", { cache: "no-store" })
+    const refresh = () => { fetch("/api/auth/me", { cache: "no-store" })
       .then((response) => response.json())
       .then((payload: { user: AuthUser | null }) => setUser(payload.user))
       .catch(() => setUser(null))
-      .finally(() => setIsLoading(false));
+      .finally(() => setIsLoading(false)); };
+    refresh();
+    window.addEventListener("umao:account-updated", refresh);
+    return () => window.removeEventListener("umao:account-updated", refresh);
   }, []);
 
   async function logout() {
