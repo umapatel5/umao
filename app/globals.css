@@ -1341,6 +1341,74 @@ textarea {
   opacity: 0.55;
 }
 
+.interview-composer {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.interview-composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 100px;
+  max-height: 240px;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid #d9c6cd;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.interview-composer textarea:focus-visible,
+.interview-composer button:focus-visible {
+  outline: 2px solid #9c496c;
+  outline-offset: 3px;
+}
+
+.interview-composer .voice-input-control {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.interview-composer .voice-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.composer-tool,
+.composer-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  color: #62404f;
+  background: transparent;
+}
+
+.composer-tool:hover { background: #faedf2; }
+.composer-send { margin-left: auto; background: #efb0cc; color: #472437; }
+.composer-send:hover { background: #e99bbc; }
+.interview-composer .recording-button { background: #fae0eb; box-shadow: none; color: #95274e; }
+.interview-composer button:disabled { opacity: 0.45; cursor: not-allowed; }
+.interview-composer .voice-status { font-size: 12px; overflow-wrap: anywhere; }
+.interview-composer .voice-preview { border: 0; border-left: 2px solid #efb0cc; border-radius: 0; background: transparent; }
+
 .transcript-input-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

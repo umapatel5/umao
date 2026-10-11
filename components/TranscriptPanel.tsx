@@ -33,6 +33,7 @@ export function TranscriptPanel({
   onSendMessage
 }: TranscriptPanelProps) {
   const [draft, setDraft] = useState("");
+  const [isListening, setIsListening] = useState(false);
   const latestInterviewerMessage =
     [...messages].reverse().find((message) => message.role === "interviewer") ?? null;
 
@@ -40,7 +41,7 @@ export function TranscriptPanel({
     event.preventDefault();
     const trimmed = draft.trim();
 
-    if (!trimmed || isThinking) {
+    if (!trimmed || isThinking || isListening) {
       return;
     }
 
@@ -49,7 +50,7 @@ export function TranscriptPanel({
   }
 
   async function askForHint() {
-    if (isThinking) {
+    if (isThinking || isListening) {
       return;
     }
 
@@ -100,38 +101,42 @@ export function TranscriptPanel({
         onStatusChange={onSpeechStatusChange}
       />
 
-      <form className="transcript-input-row" onSubmit={submitMessage}>
+      <form className="interview-composer" onSubmit={submitMessage}>
         <label className="sr-only" htmlFor="candidate-message">
           Message the interviewer
         </label>
-        <input
+        <textarea
           id="candidate-message"
+          rows={3}
           onChange={(event) => setDraft(event.target.value)}
-          placeholder="Type a response or ask for a hint..."
+          placeholder="Your answer..."
           value={draft}
         />
-        <button className="button button-primary" disabled={isThinking || !draft.trim()} type="submit">
-          <SendHorizontal aria-hidden size={17} />
-          Send
-        </button>
-      </form>
-
-      <VoiceInputControl
+        <VoiceInputControl
         disabled={isThinking}
-        onListeningChange={onVoiceListeningChange}
+        onListeningChange={(listening) => {
+          setIsListening(listening);
+          onVoiceListeningChange?.(listening);
+        }}
         onSpeakingMetricsChange={onSpeakingMetricsChange}
         onTranscriptReady={applyVoiceTranscript}
-      />
-
-      <button
-        className="button button-secondary hint-action"
-        disabled={isThinking}
+        trailingControls={<>
+          <button
+        className="composer-tool"
+        disabled={isThinking || isListening}
         onClick={askForHint}
+        title="Ask for a hint"
+        aria-label="Ask for a hint"
         type="button"
       >
         <Lightbulb aria-hidden size={17} />
-        Ask for Hint
       </button>
+          <button className="composer-send" aria-label="Send answer" title="Send answer" disabled={isThinking || isListening || !draft.trim()} type="submit">
+            {isThinking ? <Loader2 aria-hidden className="spin-icon" size={18} /> : <SendHorizontal aria-hidden size={18} />}
+          </button>
+        </>}
+      />
+      </form>
     </section>
   );
 }

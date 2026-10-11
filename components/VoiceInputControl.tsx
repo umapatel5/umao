@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Mic, MicOff } from "lucide-react";
 import {
   emptySpeakingMetrics,
@@ -53,13 +53,15 @@ type VoiceInputControlProps = {
   onListeningChange?: (isListening: boolean) => void;
   onSpeakingMetricsChange?: (metrics: SpeakingMetrics) => void;
   onTranscriptReady: (transcript: string) => void;
+  trailingControls?: ReactNode;
 };
 
 export function VoiceInputControl({
   disabled = false,
   onListeningChange,
   onSpeakingMetricsChange,
-  onTranscriptReady
+  onTranscriptReady,
+  trailingControls
 }: VoiceInputControlProps) {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const finalTranscriptRef = useRef("");
@@ -72,7 +74,7 @@ export function VoiceInputControl({
   const [isListening, setIsListening] = useState(false);
   const [lastTranscript, setLastTranscript] = useState("");
   const [statusMessage, setStatusMessage] = useState(
-    "Voice input is ready when your browser supports speech recognition."
+    ""
   );
 
   async function startRecording() {
@@ -169,7 +171,7 @@ export function VoiceInputControl({
         finalTranscriptRef.current = "";
         onTranscriptReady(transcript);
         setError(null);
-        setStatusMessage("Transcript added below. Review or edit it, then press Send.");
+        setStatusMessage("Transcript ready");
       } else if (userStoppedRecordingRef.current) {
         setError("No transcript was captured. Try speaking for a few seconds before pressing Stop, or type your response.");
         setStatusMessage("Microphone permission is allowed, but speech-to-text did not capture words.");
@@ -180,7 +182,7 @@ export function VoiceInputControl({
     recognition.start();
     updateSpeakingMetrics(startSpeakingSession(speakingMetricsRef.current));
     setIsListening(true);
-    setStatusMessage("Listening... speak clearly, then press Stop when you are done.");
+    setStatusMessage("Listening...");
     onListeningChange?.(true);
   }
 
@@ -206,28 +208,23 @@ export function VoiceInputControl({
     <div className="voice-input-control">
       <div className="voice-actions">
         <button
-          className={isListening ? "button button-primary recording-button" : "button button-secondary"}
-          disabled={disabled || isListening}
-          onClick={startRecording}
+          className={isListening ? "composer-tool recording-button" : "composer-tool"}
+          disabled={disabled && !isListening}
+          onClick={isListening ? stopRecording : startRecording}
+          aria-label={isListening ? "Stop recording" : "Record an answer"}
+          title={isListening ? "Stop recording" : "Record an answer"}
+          aria-pressed={isListening}
           type="button"
         >
-          <Mic aria-hidden size={17} />
-          Start Recording
+          {isListening ? <MicOff aria-hidden size={17} /> : <Mic aria-hidden size={17} />}
+          {isListening ? "Stop" : "Speak"}
         </button>
-        <button
-          className="button button-secondary"
-          disabled={disabled || !isListening}
-          onClick={stopRecording}
-          type="button"
-        >
-          <MicOff aria-hidden size={17} />
-          Stop
-        </button>
+        {trailingControls}
       </div>
 
-      <div className={isListening ? "voice-status listening" : "voice-status"}>
+      {statusMessage ? <div role="status" className={isListening ? "voice-status listening" : "voice-status"}>
         {statusMessage}
-      </div>
+      </div> : null}
 
       {interimTranscript ? <div className="voice-preview">{interimTranscript}</div> : null}
       {error ? <div className="console-notice warning">{error}</div> : null}
