@@ -174,6 +174,9 @@ export function InterviewWorkspace({
       }
 
       const interviewerMessage = (payload as InterviewerResponse).message;
+      if ((payload as InterviewerResponse).provider === "mock") {
+        setInterviewerError((payload as InterviewerResponse).fallbackReason ?? "AI replies are unavailable. The interviewer is using scripted demo replies.");
+      }
       setMessages((current) => [...current, interviewerMessage]);
       setLatestAvatarEchoMessage(interviewerMessage);
     } catch {

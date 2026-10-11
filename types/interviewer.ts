@@ -32,6 +32,7 @@ export type InterviewerContext = {
 };
 
 export type InterviewerResponse = {
+  fallbackReason?: string;
   message: InterviewMessage;
   provider: "mock" | "openai" | "gemini";
 };

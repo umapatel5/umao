@@ -75,7 +75,7 @@ class MockInterviewerProvider implements LlmProvider {
 class GeminiInterviewerProvider implements LlmProvider {
   async generateReply(context: InterviewerContext): Promise<InterviewerResponse> {
     const messages = buildMessages(context);
-    const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+    const model = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite";
     try {
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
@@ -89,13 +89,16 @@ class GeminiInterviewerProvider implements LlmProvider {
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: messages[0].content }] },
             contents: [{ role: "user", parts: [{ text: messages[1].content }] }],
-            generationConfig: { temperature: 0.5, maxOutputTokens: 512, thinkingConfig: { thinkingBudget: 0 } }
+            generationConfig: { temperature: 0.5, maxOutputTokens: 1024 }
           })
         }
       );
       if (!response.ok) {
         console.warn("Gemini interviewer unavailable", { status: response.status });
-        return new MockInterviewerProvider().generateReply(context);
+        const fallback = await new MockInterviewerProvider().generateReply(context);
+        return { ...fallback, fallbackReason: response.status === 400
+          ? "AI replies are unavailable because the provider rejected the request settings. These are demo replies."
+          : "The AI provider is unavailable. These are demo replies, not a live AI conversation." };
       }
       const payload = await response.json() as {
         candidates?: Array<{ content?: { parts?: Array<{ text?: string; thought?: boolean }> }; finishReason?: string }>;
