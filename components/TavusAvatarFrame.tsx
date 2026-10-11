@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import {
   createAvatarErrorPlayback,
@@ -17,6 +17,8 @@ type DailyCallFrame = {
   join: (options: {
     startAudioOff?: boolean;
     startVideoOff?: boolean;
+    audioSource?: boolean;
+    videoSource?: boolean;
     url: string;
     userName?: string;
   }) => Promise<void>;
@@ -24,6 +26,7 @@ type DailyCallFrame = {
   meetingState: () => "new" | "loading" | "loaded" | "joining-meeting" | "joined-meeting" | "left-meeting" | "error";
   on: (eventName: string, callback: (event: { data?: unknown }) => void) => void;
   sendAppMessage: (message: unknown, recipient: string) => void;
+  participants: () => Record<string, { local: boolean; tracks: { video?: { persistentTrack?: MediaStreamTrack }; audio?: { persistentTrack?: MediaStreamTrack } } }>;
 };
 
 type DailyMeetingState = ReturnType<DailyCallFrame["meetingState"]>;
@@ -43,9 +46,12 @@ const estimatedSpeechMsPerCharacter = 62;
 
 export function TavusAvatarFrame({
   echoMessage,
-  onPlaybackChange,
+  onPlaybackChange: onPlaybackUpdate,
   session
 }: TavusAvatarFrameProps) {
+  const playbackCallbackRef = useRef(onPlaybackUpdate);
+  useEffect(() => { playbackCallbackRef.current = onPlaybackUpdate; }, [onPlaybackUpdate]);
+  const onPlaybackChange = useCallback((snapshot: AvatarPlaybackSnapshot) => playbackCallbackRef.current(snapshot), []);
   const callRef = useRef<DailyCallFrame | null>(null);
   const echoedMessageIdRef = useRef<string | null>(null);
   const speakingTimeoutRef = useRef<number | null>(null);
@@ -53,6 +59,9 @@ export function TavusAvatarFrame({
   const readinessTimeoutRef = useRef<number | null>(null);
   const [dailyState, setDailyState] = useState<DailyMeetingState>("new");
   const [isReady, setIsReady] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [audioBlocked, setAudioBlocked] = useState(false);
 
   useEffect(() => {
     let didCancel = false;
@@ -74,6 +83,22 @@ export function TavusAvatarFrame({
         }
 
         const call = DailyIframe.createCallObject();
+        const updateRemoteMedia = () => {
+          const remote = Object.values(call.participants()).find((participant) => !participant.local && participant.tracks.video?.persistentTrack);
+          const videoTrack = remote?.tracks.video?.persistentTrack;
+          const audioTrack = remote?.tracks.audio?.persistentTrack;
+          if (videoRef.current && videoTrack && !(videoRef.current.srcObject instanceof MediaStream && videoRef.current.srcObject.getVideoTracks()[0] === videoTrack)) {
+            videoRef.current.srcObject = new MediaStream([videoTrack]);
+            void videoRef.current.play().catch(() => undefined);
+          }
+          if (audioRef.current && audioTrack && !(audioRef.current.srcObject instanceof MediaStream && audioRef.current.srcObject.getAudioTracks()[0] === audioTrack)) {
+            audioRef.current.srcObject = new MediaStream([audioTrack]);
+            void audioRef.current.play().then(() => setAudioBlocked(false)).catch(() => setAudioBlocked(true));
+          }
+        };
+        call.on("participant-joined", updateRemoteMedia);
+        call.on("participant-updated", updateRemoteMedia);
+        call.on("track-started", updateRemoteMedia);
 
         if (didCancel) {
           await cleanupCallFrame(call);
@@ -81,6 +106,7 @@ export function TavusAvatarFrame({
         }
 
         const markReady = () => {
+          updateRemoteMedia();
           if (!didCancel) {
             clearReadinessTimers(readinessIntervalRef, readinessTimeoutRef);
             setDailyState("joined-meeting");
@@ -109,6 +135,8 @@ export function TavusAvatarFrame({
         void call.join({
           startAudioOff: true,
           startVideoOff: true,
+          audioSource: false,
+          videoSource: false,
           url: session.conversationUrl,
           userName: "Umao Echo Controller"
         }).catch((error) => {
@@ -197,12 +225,17 @@ export function TavusAvatarFrame({
 
   return (
     <div className="tavus-avatar-frame" data-daily-state={dailyState}>
-      <iframe
-        allow="microphone; autoplay; fullscreen; display-capture"
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
         className="tavus-avatar-iframe"
-        src={session.conversationUrl ?? undefined}
-        title="Tavus AI interviewer avatar"
+        aria-label="Tavus AI interviewer avatar"
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
+      <audio ref={audioRef} autoPlay />
+      {audioBlocked && <button className="button button-secondary" type="button" onClick={() => { void audioRef.current?.play().then(() => setAudioBlocked(false)).catch(() => setAudioBlocked(true)); }}>Enable interviewer audio</button>}
     </div>
   );
 }
