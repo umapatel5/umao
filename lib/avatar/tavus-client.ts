@@ -9,11 +9,23 @@ let sharedSession: TavusAvatarSession | null = null;
 let sharedSessionPromise: Promise<TavusAvatarSession> | null = null;
 let releaseTimer: number | null = null;
 let activeConsumers = 0;
+let unloadHandlerInstalled = false;
+
+function installUnloadHandler() {
+  if (unloadHandlerInstalled) return;
+  unloadHandlerInstalled = true;
+  window.addEventListener("pagehide", () => {
+    if (sharedSession?.conversationId) {
+      navigator.sendBeacon("/api/avatar/tavus/end", new Blob([JSON.stringify({ conversationId: sharedSession.conversationId })], { type: "application/json" }));
+    }
+  });
+}
 
 export async function startTavusAvatarSession(
   input: StartTavusAvatarSessionInput
 ): Promise<TavusAvatarSession> {
   activeConsumers += 1;
+  installUnloadHandler();
   clearReleaseTimer();
 
   if (sharedSession) {
@@ -27,6 +39,10 @@ export async function startTavusAvatarSession(
   sharedSessionPromise = createTavusAvatarSession(input).then((session) => {
     sharedSession = session;
     sharedSessionPromise = null;
+    if (activeConsumers === 0 && session.conversationId) {
+      sharedSession = null;
+      void endTavusAvatarSession(session.conversationId);
+    }
     return session;
   });
 
@@ -84,7 +100,8 @@ export async function endTavusAvatarSession(conversationId: string) {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ conversationId })
+    body: JSON.stringify({ conversationId }),
+    keepalive: true
   });
 }
 

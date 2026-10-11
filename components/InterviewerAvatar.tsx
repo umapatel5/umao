@@ -27,6 +27,7 @@ export function InterviewerAvatar({ playback, state }: InterviewerAvatarProps) {
           className="avatar-portrait"
           fill
           priority
+          unoptimized
           sizes="(max-width: 900px) 100vw, 420px"
           src="/avatar/interviewer.png"
         />

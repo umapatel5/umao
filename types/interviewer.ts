@@ -33,5 +33,5 @@ export type InterviewerContext = {
 
 export type InterviewerResponse = {
   message: InterviewMessage;
-  provider: "mock" | "openai";
+  provider: "mock" | "openai" | "gemini";
 };

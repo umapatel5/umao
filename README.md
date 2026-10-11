@@ -120,7 +120,8 @@ Use `CODE_RUNNER_TEST_URL` and `CODE_RUNNER_SERVICE_TOKEN` only when testing a n
 
 Create `.env.local` from `.env.example` and fill only the services you want to use locally.
 
-- `OPENAI_API_KEY` and `OPENAI_MODEL`: optional AI interviewer provider.
+- `GEMINI_API_KEY` and `GEMINI_MODEL`: optional Gemini interviewer provider (default `gemini-2.5-flash`). Gemini takes priority when configured. Interview answers, problem details, code, test results, and conversation history are sent server-side to Google; no webcam or microphone media is sent to Gemini. Free-tier content may be used by Google to improve its products; avoid sensitive information. Provider errors, timeouts, or quota limits fall back to demo replies.
+- `OPENAI_API_KEY` and `OPENAI_MODEL`: optional alternative AI interviewer provider.
 - `TAVUS_API_KEY`, `TAVUS_ECHO_PERSONA_ID`, `TAVUS_PERSONA_ID`, `TAVUS_REPLICA_ID`, `TAVUS_TEST_MODE`: optional Tavus avatar integration.
 - `CODE_RUNNER_SERVICE_URL` and `CODE_RUNNER_SERVICE_TOKEN`: optional private execution service. Leave blank for local in-process execution.
 

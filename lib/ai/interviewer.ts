@@ -12,6 +12,9 @@ export async function generateInterviewerReply(
 }
 
 function getInterviewerProvider(): LlmProvider {
+  if (process.env.GEMINI_API_KEY) {
+    return new GeminiInterviewerProvider();
+  }
   if (process.env.OPENAI_API_KEY) {
     return new OpenAiInterviewerProvider();
   }
@@ -23,7 +26,15 @@ class MockInterviewerProvider implements LlmProvider {
   async generateReply(context: InterviewerContext): Promise<InterviewerResponse> {
     const failedTests = context.latestRun?.results.filter((result) => !result.passed) ?? [];
     const askedForHint = /\bhint\b|\bstuck\b|\bhelp\b/i.test(context.candidateMessage);
-    const codeChanged = context.currentCode.trim().length > 0;
+    const candidateTurns = context.messages.filter((message) => message.role === "candidate").length;
+    const lastQuestion = [...context.messages].reverse().find((message) => message.role === "interviewer")?.text ?? "";
+    const followUps = [
+      "What edge cases would you check before running the code? Consider empty input and repeated values where the problem allows them.",
+      "What are the time and space costs of your approach? Explain what grows as the input gets larger.",
+      "How would you compare this approach with a simpler brute-force version? What tradeoff led you to choose it?",
+      "Walk through a concrete example from the problem and explain how your state changes at each step.",
+      "What would you test next to build confidence in your solution?"
+    ];
     const roleQuestion = getRoleFollowUp(context.role);
 
     let text =
@@ -39,8 +50,14 @@ class MockInterviewerProvider implements LlmProvider {
       text = `Small hint: start from the invariant you want after each step, then test it on the smallest edge case. ${roleQuestion}`;
     } else if (context.latestRun?.passed) {
       text = `Nice, the current tests pass. What edge case would you add next, and how would your answer change in a ${context.role} interview?`;
-    } else if (codeChanged) {
-      text = `I see code in the editor. Walk me through the invariant your main loop or recursion maintains, then connect it to what a ${context.role} should prioritize.`;
+    } else {
+      const mentionsApproach = /set|map|hash|loop|sort|pointer|recurs|queue|stack|search|iterate/i.test(context.candidateMessage);
+      const acknowledgment = mentionsApproach ? "Thanks for explaining the approach. " : "Thanks. Let's work through the next part. ";
+      text = acknowledgment + followUps[candidateTurns % followUps.length];
+    }
+
+    if (text === lastQuestion) {
+      text = "Let's trace a specific example together. What is the first step your code takes, and where might the result go wrong?";
     }
 
     return {
@@ -52,6 +69,50 @@ class MockInterviewerProvider implements LlmProvider {
         timestamp: "Now"
       }
     };
+  }
+}
+
+class GeminiInterviewerProvider implements LlmProvider {
+  async generateReply(context: InterviewerContext): Promise<InterviewerResponse> {
+    const messages = buildMessages(context);
+    const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "x-goog-api-key": process.env.GEMINI_API_KEY!,
+            "Content-Type": "application/json"
+          },
+          signal: AbortSignal.timeout(20000),
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: messages[0].content }] },
+            contents: [{ role: "user", parts: [{ text: messages[1].content }] }],
+            generationConfig: { temperature: 0.5, maxOutputTokens: 512, thinkingConfig: { thinkingBudget: 0 } }
+          })
+        }
+      );
+      if (!response.ok) {
+        console.warn("Gemini interviewer unavailable", { status: response.status });
+        return new MockInterviewerProvider().generateReply(context);
+      }
+      const payload = await response.json() as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string; thought?: boolean }> }; finishReason?: string }>;
+      };
+      const candidate = payload.candidates?.[0];
+      const text = candidate?.content?.parts?.filter((part) => !part.thought).map((part) => part.text ?? "").join("").trim();
+      if (!text || candidate?.finishReason === "SAFETY") {
+        return new MockInterviewerProvider().generateReply(context);
+      }
+      return {
+        provider: "gemini",
+        message: { id: crypto.randomUUID(), role: "interviewer", text, timestamp: "Now" }
+      };
+    } catch {
+      console.warn("Gemini interviewer request failed; using demo fallback");
+      return new MockInterviewerProvider().generateReply(context);
+    }
   }
 }
 

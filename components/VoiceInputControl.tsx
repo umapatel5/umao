@@ -251,7 +251,7 @@ function getSpeechErrorMessage(error?: string, micPermissionGranted = false) {
   }
 
   if (error === "network") {
-    return "Your microphone is allowed, but the browser speech-recognition service could not connect. Refresh, try Chrome, or use typed input.";
+    return "Your microphone is allowed, but this browser could not reach its transcription service. Open Umao in the Google Chrome app (outside this embedded browser) to try voice input, or type your response below. Tavus credits do not control transcription.";
   }
 
   if (error === "aborted") {
