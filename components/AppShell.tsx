@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Bell, Braces, History, House, LayoutDashboard, Settings } from "lucide-react";
+import { BarChart3, Braces, History, House, LayoutDashboard, Settings } from "lucide-react";
 import { AuthStatus } from "@/components/AuthStatus";
 
 type AppShellProps = {
@@ -45,9 +45,6 @@ export function AppShell({ children, active }: AppShellProps) {
         </nav>
 
         <div className="topbar-actions">
-          <button className="icon-button" title="Notifications" type="button">
-            <Bell aria-hidden size={17} />
-          </button>
           <AuthStatus />
         </div>
       </header>

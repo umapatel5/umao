@@ -9,6 +9,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "node scripts/verify-code-runner.mjs",
     "test:webcam": "node scripts/verify-webcam.mjs",
+    "test:auth": "node scripts/verify-auth.mjs",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
@@ -18,6 +19,7 @@
     "lucide-react": "^0.468.0",
     "monaco-editor": "^0.57.0",
     "next": "^15.5.24",
+    "postgres": "^3.4.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AuthStatus } from "@/components/AuthStatus";
 
 type MarketingShellProps = {
   children: React.ReactNode;
@@ -13,9 +14,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
         </Link>
 
         <div className="site-auth">
-          <Link className="site-button site-button-primary" href="/login">
-            Login / Sign up
-          </Link>
+          <AuthStatus marketing />
         </div>
       </header>
 

@@ -7,7 +7,11 @@ export async function POST(request: Request) {
     email: body.email ?? "",
     name: body.name ?? "",
     password: body.password ?? ""
-  });
+  }).catch(() => null);
+
+  if (!result) {
+    return NextResponse.json({ error: "Account storage is unavailable. Please try again later; your account has not been created." }, { status: 503 });
+  }
 
   if ("error" in result) {
     return NextResponse.json({ error: result.error }, { status: 400 });

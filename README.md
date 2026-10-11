@@ -23,7 +23,7 @@ The landing page includes an interactive Two Sum demo: edit JavaScript, run test
 | Candidate voice | Browser speech recognition; typed responses remain available |
 | Voice fallback | Browser Web Speech API (`speechSynthesis`) |
 | Camera signals | MediaPipe Face Landmarker, self-hosted model and WASM, local Web Worker inference for face presence and estimated head direction |
-| Accounts and history | Custom server-side authentication, Node.js scrypt password hashing, local JSON database |
+| Accounts and history | Custom server-side authentication, Node.js scrypt password hashing, PostgreSQL persistence; local JSON for development |
 | Execution | Python, Node.js/JavaScript, Java, C++; separate runner service and Docker configuration |
 | Deployment | Vercel for the web app; AWS ECS/Fargate infrastructure templates for the runner |
 | Validation | TypeScript, ESLint, runner integration tests, GitHub Actions |
@@ -136,7 +136,7 @@ Umao is prepared for Vercel preview deployments. For a permanent public demo:
 3. Configure a private runner service for production code execution; the local fallback depends on installed language runtimes and is not a production sandbox.
 4. Deploy from the `main` branch. Local edits become live only after a deployment succeeds.
 
-The local JSON database is for development/demo use only. Production should use a managed database before storing real user history.
+Connect a PostgreSQL database (for example, through Vercel Storage) and set `DATABASE_URL` or `POSTGRES_URL` for Production before deploying account features. Credentials stay server-side. On first use the adapter creates `umao_state`, a single JSONB state row, with transactional row locking to prevent concurrent updates from losing accounts, sessions, or results. This preserves the existing repository contract for a small demo; it is not a high-volume relational schema. Use a pooled connection URL with TLS as supplied by the provider, separate databases for previews, and provider backups. Vercel account writes fail clearly when storage is missing rather than saving users to ephemeral `/tmp` files. Local JSON remains available outside Vercel for development. Previously lost temporary accounts cannot be recovered automatically and must be recreated after persistent storage is configured.
 
 ## Current Status
 
@@ -149,7 +149,7 @@ The local JSON database is for development/demo use only. Production should use 
 
 ## Future Integration Points
 
-- Replace the development local database with managed production storage.
+- Configure and verify managed PostgreSQL storage in production; normalize the state schema before scaling beyond a small demo.
 - Deploy the code runner to private ECS/Fargate networking after approval.
 - Add production monitoring dashboards and alarms.
 - Continue UI polish and deployment hardening.

@@ -6,7 +6,11 @@ export async function POST(request: Request) {
   const result = await loginUser({
     email: body.email ?? "",
     password: body.password ?? ""
-  });
+  }).catch(() => null);
+
+  if (!result) {
+    return NextResponse.json({ error: "Account storage is unavailable. Please try again later." }, { status: 503 });
+  }
 
   if ("error" in result) {
     return NextResponse.json({ error: result.error }, { status: 401 });
