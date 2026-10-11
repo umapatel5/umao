@@ -13,6 +13,7 @@ type WebcamMetricInput = {
   frameWidth: number;
   previous: WebcamAnalysisMetrics;
   timestamp: number;
+  headPosition?: HeadPosition;
 };
 
 export const emptyWebcamMetrics: WebcamAnalysisMetrics = {
@@ -38,12 +39,13 @@ export function createWebcamMetrics({
   frameHeight,
   frameWidth,
   previous,
-  timestamp
+  timestamp,
+  headPosition: detectedHeadPosition
 }: WebcamMetricInput): WebcamAnalysisMetrics {
-  const elapsedMs = previous.lastUpdatedAt ? Math.max(0, timestamp - previous.lastUpdatedAt) : 0;
+  const elapsedMs = previous.lastUpdatedAt && previous.analysisAvailable ? Math.min(1500, Math.max(0, timestamp - previous.lastUpdatedAt)) : 0;
 
   if (!faces.length) {
-    const wasFacing = previous.faceState === "detected" && previous.headPosition !== "away";
+    const wasFacing = previous.faceState === "detected" && previous.headPosition === "centered";
 
     return {
       analysisAvailable: true,
@@ -57,7 +59,7 @@ export function createWebcamMetrics({
   }
 
   const primaryFace = faces[0];
-  const headPosition = estimateHeadPosition(primaryFace, frameWidth, frameHeight);
+  const headPosition = detectedHeadPosition ?? estimateHeadPosition(primaryFace, frameWidth, frameHeight);
   const isFacing = headPosition === "centered";
   const wasFacing = previous.faceState === "detected" && previous.headPosition === "centered";
 

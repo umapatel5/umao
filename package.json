@@ -8,10 +8,12 @@
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "node scripts/verify-code-runner.mjs",
+    "test:webcam": "node scripts/verify-webcam.mjs",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.92.0",
+    "@mediapipe/tasks-vision": "^1.1.0",
     "@monaco-editor/react": "^4.7.0",
     "lucide-react": "^0.468.0",
     "monaco-editor": "^0.57.0",

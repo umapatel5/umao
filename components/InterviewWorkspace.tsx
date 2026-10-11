@@ -25,13 +25,7 @@ const initialMessages: InterviewMessage[] = [
     id: "initial-interviewer",
     role: "interviewer",
     timestamp: "00:05",
-    text: "When you are ready, walk me through your understanding of the problem."
-  },
-  {
-    id: "initial-candidate",
-    role: "candidate",
-    timestamp: "00:18",
-    text: "I would confirm the input size, the existence of one valid answer, and whether indices should be sorted."
+    text: "Hi, glad you're here. Before we start coding, tell me a little about your experience and a project you've worked on. What did you build, and what was your part in it?"
   },
   {
     id: "initial-system",
@@ -206,6 +200,20 @@ export function InterviewWorkspace({
       webcamMetrics
     });
 
+    try {
+      const response = await fetch("/api/interviewer/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result.input),
+        signal: AbortSignal.timeout(22000)
+      });
+      if (response.ok) {
+        const payload = await response.json();
+        if (payload.feedback) result.feedback = payload.feedback;
+      }
+    } catch {
+      // Keep local feedback if AI feedback is unavailable.
+    }
     saveInterviewResult(result);
 
     try {

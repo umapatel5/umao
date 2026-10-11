@@ -22,13 +22,13 @@ The landing page includes an interactive Two Sum demo: edit JavaScript, run test
 | Video interviewer | Tavus Echo Mode and Daily JavaScript SDK; Umao supplies the response text |
 | Candidate voice | Browser speech recognition; typed responses remain available |
 | Voice fallback | Browser Web Speech API (`speechSynthesis`) |
-| Camera signals | Browser camera access, face-detection support where available, local attention heuristics |
+| Camera signals | MediaPipe Face Landmarker, self-hosted model and WASM, local Web Worker inference for face presence and estimated head direction |
 | Accounts and history | Custom server-side authentication, Node.js scrypt password hashing, local JSON database |
 | Execution | Python, Node.js/JavaScript, Java, C++; separate runner service and Docker configuration |
 | Deployment | Vercel for the web app; AWS ECS/Fargate infrastructure templates for the runner |
 | Validation | TypeScript, ESLint, runner integration tests, GitHub Actions |
 
-Camera measurements estimate face presence and position; they are not identity recognition or a validated measure of ability. No raw webcam video or microphone audio is saved by Umao's history database.
+Camera measurements estimate face presence and head direction, not exact eye contact, emotions, identity, or ability. Analysis starts only with the camera and runs locally in a Web Worker. Stop camera terminates the worker; raw frames and landmarks are not saved or sent to an API. Poor lighting, occlusion, and device support may reduce accuracy. Model and runtime assets are served from `public/mediapipe`; the WASM assets match the installed `@mediapipe/tasks-vision` version and must be recopied if it is upgraded. No raw webcam video or microphone audio is saved by Umao's history database.
 
 Umao is built as an end-to-end technical interview practice platform: candidates choose a role and coding problem, solve in a Monaco-powered workspace, talk with an AI interviewer, receive scored feedback, and review saved interview history.
 

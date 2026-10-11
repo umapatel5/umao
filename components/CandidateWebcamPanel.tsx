@@ -13,15 +13,6 @@ import type {
   WebcamAnalysisMetrics
 } from "@/types/candidate-analysis";
 
-type FaceDetectorConstructor = new (options?: { fastMode?: boolean; maxDetectedFaces?: number }) => {
-  detect: (source: HTMLVideoElement) => Promise<Array<{ boundingBox: DOMRectReadOnly }>>;
-};
-
-type FaceDetectorWindow = Window &
-  typeof globalThis & {
-    FaceDetector?: FaceDetectorConstructor;
-  };
-
 type CandidateWebcamPanelProps = {
   onMetricsChange?: (metrics: WebcamAnalysisMetrics) => void;
   speakingMetrics: SpeakingMetrics;
@@ -48,60 +39,73 @@ export function CandidateWebcamPanel({ onMetricsChange, speakingMetrics }: Candi
       return;
     }
 
-    const FaceDetector = (window as FaceDetectorWindow).FaceDetector;
-
-    if (!FaceDetector) {
+    const unavailable = () => {
       const unavailableMetrics = markWebcamAnalysisUnavailable(metricsRef.current);
       metricsRef.current = unavailableMetrics;
       setMetrics(unavailableMetrics);
       onMetricsChangeRef.current?.(unavailableMetrics);
+    };
+    let didCancel = false;
+    let busy = false;
+    let ready = false;
+    let lastVideoTime = -1;
+    let worker: Worker;
+    try {
+      worker = new Worker(new URL("../lib/webcam/face-analysis.worker.ts", import.meta.url));
+    } catch {
+      unavailable();
       return;
     }
-
-    let didCancel = false;
-    const detector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
-    const intervalId = window.setInterval(() => {
+    const loadTimeout = window.setTimeout(() => {
+      if (!ready && !didCancel) { unavailable(); worker.terminate(); }
+    }, 30000);
+    worker.onmessage = (event) => {
+      if (didCancel) return;
+      busy = false;
+      if (event.data.type === "ready") {
+        ready = true;
+        window.clearTimeout(loadTimeout);
+      } else if (event.data.type === "error") {
+        ready = false;
+        unavailable();
+      } else if (event.data.type === "result") {
+        const nextMetrics = createWebcamMetrics({
+          faces: event.data.faces,
+          headPosition: event.data.headPosition,
+          frameHeight: event.data.height,
+          frameWidth: event.data.width,
+          previous: metricsRef.current,
+          timestamp: Date.now()
+        });
+        metricsRef.current = nextMetrics;
+        setMetrics(nextMetrics);
+        onMetricsChangeRef.current?.(nextMetrics);
+      }
+    };
+    worker.onerror = () => { if (!didCancel) { ready = false; unavailable(); } };
+    worker.postMessage({ type: "init", origin: window.location.origin });
+    const intervalId = window.setInterval(async () => {
       const video = videoRef.current;
-
-      if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+      if (!ready || busy || document.hidden || !video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || video.currentTime === lastVideoTime) {
         return;
       }
-
-      detector
-        .detect(video)
-        .then((faces) => {
-          if (didCancel) {
-            return;
-          }
-
-          const nextMetrics = createWebcamMetrics({
-            faces: faces.map((face) => ({
-              height: face.boundingBox.height,
-              width: face.boundingBox.width,
-              x: face.boundingBox.x,
-              y: face.boundingBox.y
-            })),
-            frameHeight: video.videoHeight || video.clientHeight,
-            frameWidth: video.videoWidth || video.clientWidth,
-            previous: metricsRef.current,
-            timestamp: Date.now()
-          });
-
-          metricsRef.current = nextMetrics;
-          setMetrics(nextMetrics);
-          onMetricsChangeRef.current?.(nextMetrics);
-        })
-        .catch(() => {
-          const unavailableMetrics = markWebcamAnalysisUnavailable(metricsRef.current);
-          metricsRef.current = unavailableMetrics;
-          setMetrics(unavailableMetrics);
-          onMetricsChangeRef.current?.(unavailableMetrics);
-        });
-    }, 850);
+      busy = true;
+      lastVideoTime = video.currentTime;
+      try {
+        const frame = await createImageBitmap(video, { resizeWidth: 480, resizeHeight: Math.round(480 * video.videoHeight / video.videoWidth) });
+        if (didCancel) { frame.close(); return; }
+        worker.postMessage({ type: "frame", frame, timestamp: performance.now() }, [frame]);
+      } catch {
+        busy = false;
+        if (!didCancel) unavailable();
+      }
+    }, 500);
 
     return () => {
       didCancel = true;
       window.clearInterval(intervalId);
+      window.clearTimeout(loadTimeout);
+      worker.terminate();
     };
   }, [isCameraActive]);
 
@@ -293,7 +297,7 @@ function formatFaceState(metrics: WebcamAnalysisMetrics) {
   }
 
   if (metrics.faceState === "detected") {
-    return "Face detected";
+    return metrics.headPosition === "centered" ? "Facing camera (estimate)" : `Head direction: ${metrics.headPosition} (estimate)`;
   }
 
   if (metrics.faceState === "not-detected") {

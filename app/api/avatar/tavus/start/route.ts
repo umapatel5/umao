@@ -18,7 +18,7 @@ export async function POST(request: Request) {
         "Umao is running a technical coding interview. Keep responses concise, professional, and focused on the candidate's approach.",
       customGreeting:
         body?.customGreeting ??
-        "Hi, I am your Umao interviewer. When you are ready, walk me through your approach."
+        "Hi, glad you're here. Before we start coding, tell me a little about your experience and a project you've worked on. What did you build, and what was your part in it?"
     });
 
     return NextResponse.json(session);
