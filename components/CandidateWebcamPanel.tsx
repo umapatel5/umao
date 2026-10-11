@@ -33,6 +33,10 @@ export function CandidateWebcamPanel({ onMetricsChange, speakingMetrics }: Candi
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const metricsRef = useRef<WebcamAnalysisMetrics>(emptyWebcamMetrics);
+  const onMetricsChangeRef = useRef(onMetricsChange);
+  useEffect(() => {
+    onMetricsChangeRef.current = onMetricsChange;
+  }, [onMetricsChange]);
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<WebcamAnalysisMetrics>(emptyWebcamMetrics);
   const [permissionState, setPermissionState] = useState<CameraPermissionState>("idle");
@@ -50,6 +54,7 @@ export function CandidateWebcamPanel({ onMetricsChange, speakingMetrics }: Candi
       const unavailableMetrics = markWebcamAnalysisUnavailable(metricsRef.current);
       metricsRef.current = unavailableMetrics;
       setMetrics(unavailableMetrics);
+      onMetricsChangeRef.current?.(unavailableMetrics);
       return;
     }
 
@@ -84,13 +89,13 @@ export function CandidateWebcamPanel({ onMetricsChange, speakingMetrics }: Candi
 
           metricsRef.current = nextMetrics;
           setMetrics(nextMetrics);
-          onMetricsChange?.(nextMetrics);
+          onMetricsChangeRef.current?.(nextMetrics);
         })
         .catch(() => {
           const unavailableMetrics = markWebcamAnalysisUnavailable(metricsRef.current);
           metricsRef.current = unavailableMetrics;
           setMetrics(unavailableMetrics);
-          onMetricsChange?.(unavailableMetrics);
+          onMetricsChangeRef.current?.(unavailableMetrics);
         });
     }, 850);
 
@@ -98,7 +103,7 @@ export function CandidateWebcamPanel({ onMetricsChange, speakingMetrics }: Candi
       didCancel = true;
       window.clearInterval(intervalId);
     };
-  }, [isCameraActive, onMetricsChange]);
+  }, [isCameraActive]);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -111,8 +116,8 @@ export function CandidateWebcamPanel({ onMetricsChange, speakingMetrics }: Candi
     setPermissionState((current) => (current === "granted" || current === "requesting" ? "idle" : current));
     metricsRef.current = emptyWebcamMetrics;
     setMetrics(emptyWebcamMetrics);
-    onMetricsChange?.(emptyWebcamMetrics);
-  }, [onMetricsChange]);
+    onMetricsChangeRef.current?.(emptyWebcamMetrics);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -197,7 +202,7 @@ export function CandidateWebcamPanel({ onMetricsChange, speakingMetrics }: Candi
 
       <div className="candidate-attention-row">
         <span className={`attention-dot ${metrics.faceState}`} />
-        <span>{formatFaceState(metrics)}</span>
+        <span>{isCameraActive ? `Camera on · ${formatFaceState(metrics)}` : getPermissionLabel(permissionState)}</span>
       </div>
       {error ? <div className="camera-error">{error}</div> : null}
 
