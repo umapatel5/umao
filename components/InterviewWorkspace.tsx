@@ -213,6 +213,10 @@ export function InterviewWorkspace({
       if (response.ok) {
         const payload = await response.json();
         if (payload.feedback) result.feedback = payload.feedback;
+        if (payload.communication?.assessed === true) {
+          result.scores.communication = payload.communication;
+          result.scores.overall = Math.round(result.scores.coding.score * 0.45 + result.scores.problemSolving.score * 0.3 + payload.communication.score * 0.25);
+        }
       }
     } catch {
       // Keep local feedback if AI feedback is unavailable.

@@ -89,6 +89,30 @@ export function ResultsReview({ sessionId }: ResultsReviewProps) {
         <ScoreCard icon={UserCheck} score={result.scores.communication} />
       </div>
 
+      <section className="panel" aria-labelledby="performance-chart-title">
+        <h2 className="section-title" id="performance-chart-title">Your interview at a glance</h2>
+        <div style={{ display: "grid", gap: 20, marginTop: 20 }}>
+          {[result.scores.coding, result.scores.problemSolving, result.scores.communication].map((score, index) => (
+            <div key={score.label}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <strong>{score.label}</strong>
+                <span>{score.assessed === false ? "Not enough evidence to score" : `${score.score}/100`}</span>
+              </div>
+              {score.assessed !== false && <div role="meter" aria-label={score.label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={score.score} style={{ height: 16, background: "#eee8eb", marginTop: 8 }}>
+                <div style={{ height: "100%", width: `${score.score}%`, background: ["#a74470", "#70836a", "#80604f"][index] }} />
+              </div>}
+            </div>
+          ))}
+          {result.input.latestRun?.results.length ? <div>
+            <h3>Test results</h3>
+            <div style={{ display: "flex", height: 24 }} aria-label={`${result.input.latestRun.results.filter((test) => test.passed).length} of ${result.input.latestRun.results.length} tests passed`}>
+              {result.input.latestRun.results.map((test) => <div key={test.name} title={`${test.name}: ${test.passed ? "Passed" : "Failed"}`} style={{ flex: 1, background: test.passed ? "#70836a" : "#a74470", borderRight: "2px solid white" }} />)}
+            </div>
+            <p>{result.input.latestRun.results.filter((test) => test.passed).length} passed · {result.input.latestRun.results.filter((test) => !test.passed).length} failed</p>
+          </div> : <p>No test run was saved for this attempt.</p>}
+        </div>
+      </section>
+
       <div className="grid grid-2 results-feedback-grid">
         <FeedbackSection items={result.feedback.strengths} title="Strengths" tone="positive" />
         <FeedbackSection items={result.feedback.areasToImprove} title="Areas to improve" tone="focus" />
@@ -99,7 +123,7 @@ export function ResultsReview({ sessionId }: ResultsReviewProps) {
           <div>
             <h2 className="section-title">Scoring signals</h2>
             <div className="meta">
-              Scores are deterministic. Qualitative feedback provider: {result.feedback.provider}.
+              Coding uses test results. Communication uses AI review when enough evidence is available.
             </div>
           </div>
           <Link className="button button-secondary" href={`/interview/${retrySessionId}`}>
@@ -139,12 +163,12 @@ function ScoreCard({
         <Icon aria-hidden size={20} />
         <div>
           <h2>{score.label}</h2>
-          <span>{score.score}/100</span>
+          <span>{score.assessed === false ? (score.summary.includes("too short") ? "Interview too short to score" : "Communication review unavailable") : `${score.score}/100`}</span>
         </div>
       </div>
-      <div className="score-meter" aria-label={`${score.label} score ${score.score} out of 100`}>
+      {score.assessed !== false && <div className="score-meter" aria-label={`${score.label} score ${score.score} out of 100`}>
         <span style={{ width: `${score.score}%` }} />
-      </div>
+      </div>}
       <p>{score.summary}</p>
     </section>
   );
@@ -234,13 +258,13 @@ function createResultFromSaved(result: SavedInterviewResult): InterviewResult {
           `Problem: ${result.codingProblem}`,
           `Role: ${result.role}`
         ],
-        summary: "Saved from the completed interview result."
+        summary: "Historical score. Test details were not saved, so whether this problem was solved cannot be verified."
       },
       communication: {
         label: "Communication",
         score: result.communicationScore,
         signals: [`Saved communication score: ${result.communicationScore}/100`],
-        summary: "Saved from the completed interview result."
+        summary: "Historical score from the earlier rubric; it may overestimate communication quality."
       },
       overall: result.overallScore,
       problemSolving: {

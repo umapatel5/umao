@@ -20,6 +20,7 @@ export type InterviewScoringInput = {
 };
 
 export type RubricScore = {
+  assessed?: boolean;
   label: string;
   score: number;
   summary: string;

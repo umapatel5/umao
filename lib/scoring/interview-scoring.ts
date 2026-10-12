@@ -4,7 +4,7 @@ export function scoreInterview(input: InterviewScoringInput): DeterministicInter
   const coding = scoreCoding(input);
   const problemSolving = scoreProblemSolving(input);
   const communication = scoreCommunication(input);
-  const overall = clampScore(Math.round(coding.score * 0.45 + problemSolving.score * 0.3 + communication.score * 0.25));
+  const overall = clampScore(Math.round((coding.score * 0.45 + problemSolving.score * 0.3) / 0.75));
 
   return {
     coding,
@@ -21,11 +21,10 @@ function scoreCoding(input: InterviewScoringInput): RubricScore {
   const hasError = Boolean(input.latestRun?.error || input.latestRun?.results.some((result) => result.error));
   const timedOut = Boolean(input.latestRun?.results.some((result) => result.timedOut));
   const runtimeMs = input.latestRun?.runtimeMs ?? null;
-  const runtimeScore = runtimeMs === null ? 28 : runtimeMs <= 1200 ? 100 : runtimeMs <= 2500 ? 78 : runtimeMs <= 5000 ? 55 : 34;
   const hintPenalty = Math.min(18, input.hintsUsed * 6);
   const errorPenalty = hasError ? 18 : 0;
   const timeoutPenalty = timedOut ? 15 : 0;
-  const score = clampScore(Math.round(passRate * 68 + runtimeScore * 0.22 + 10 - hintPenalty - errorPenalty - timeoutPenalty));
+  const score = clampScore(Math.round(passRate * 100 - (passedTests ? hintPenalty + errorPenalty + timeoutPenalty : 0)));
 
   return {
     label: "Coding",
@@ -38,8 +37,10 @@ function scoreCoding(input: InterviewScoringInput): RubricScore {
     ],
     summary:
       totalTests === 0
-        ? "No completed code run was available, so the coding score is conservative."
-        : `${passedTests} of ${totalTests} tests passed with ${hasError ? "errors to resolve" : "no latest execution error"}.`
+        ? "Not assessed: code was not tested. No coding credit was awarded."
+        : passedTests === totalTests && !hasError && !timedOut
+          ? `All ${totalTests} available tests passed. This does not prove correctness for every possible input.`
+          : `Not solved: ${passedTests} of ${totalTests} tests passed. Credit reflects passing tests only.`
   };
 }
 
@@ -60,8 +61,7 @@ function scoreProblemSolving(input: InterviewScoringInput): RubricScore {
         Math.min(16, edgeCaseSignals * 4) +
         Math.min(18, complexitySignals * 6) +
         responseQualityScore +
-        latestRunBonus +
-        8
+        latestRunBonus
     )
   );
 
@@ -83,26 +83,31 @@ function scoreProblemSolving(input: InterviewScoringInput): RubricScore {
 
 function scoreCommunication(input: InterviewScoringInput): RubricScore {
   const speakingSeconds = input.speakingMetrics.speakingDurationMs / 1000;
-  const speakingScore = speakingSeconds === 0 ? 35 : speakingSeconds < 8 ? 62 : speakingSeconds <= 120 ? 92 : 76;
-  const pausePenalty = Math.min(18, input.speakingMetrics.pauseCount * 4);
-  const awayPenalty = Math.min(22, input.webcamMetrics.lookingAwayCount * 4 + input.webcamMetrics.lookingAwayMs / 1500);
-  const extendedAwayPenalty = input.webcamMetrics.extendedAwayMs > 8000 ? 18 : input.webcamMetrics.extendedAwayMs > 4000 ? 10 : 0;
-  const facePresenceBonus = input.webcamMetrics.faceState === "detected" ? 8 : input.webcamMetrics.faceState === "not-detected" ? -8 : 0;
-  const score = clampScore(Math.round(speakingScore - pausePenalty - awayPenalty - extendedAwayPenalty + facePresenceBonus));
+  const answers = input.messages.filter((message) => message.role === "candidate");
+  const substantiveAnswers = answers.filter((message) => {
+    const words = message.text.trim().split(/\s+/).filter(Boolean);
+    return words.length >= 12 && !/^(idk|i don'?t know|how are you|hello|thanks|okay)\b/i.test(message.text.trim());
+  });
+  const limitedEvidence = substantiveAnswers.length < 3;
+  // Timing and head direction are coaching observations, not evidence of answer quality.
+  const score = 0;
 
   return {
     label: "Communication",
+    assessed: false,
     score,
     signals: [
+      `${substantiveAnswers.length} substantial response${substantiveAnswers.length === 1 ? "" : "s"}`,
+      limitedEvidence ? "Limited evidence: interview may have ended before enough answers were given" : "Local estimate; relevance and correctness require qualitative review",
       `${Math.round(speakingSeconds)}s spoken response time`,
       `${input.speakingMetrics.pauseCount} extended pause${input.speakingMetrics.pauseCount === 1 ? "" : "s"}`,
       `${input.webcamMetrics.lookingAwayCount} looking-away event${input.webcamMetrics.lookingAwayCount === 1 ? "" : "s"}`,
       `Face state: ${input.webcamMetrics.faceState}`
     ],
     summary:
-      input.webcamMetrics.analysisAvailable || speakingSeconds > 0
-        ? "Communication score uses local voice timing and camera-attention signals."
-        : "Communication score is conservative because little voice or camera signal was available."
+      limitedEvidence
+        ? "The interview was too short to calculate reliable communication metrics. Answer a few more questions with explanations in your next attempt."
+        : "Communication has not been assessed. AI review is required to evaluate relevance, clarity, and explanation quality; participation alone earns no grade."
   };
 }
 

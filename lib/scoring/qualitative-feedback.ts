@@ -14,21 +14,12 @@ function selectStrengths(scores: DeterministicInterviewScores) {
 
   if (scores.coding.score >= 75) {
     strengths.push("Translated the prompt into working code with strong test-case performance.");
-  } else {
-    strengths.push("Kept a runnable solution path visible, which gives the interviewer concrete code to evaluate.");
   }
 
   if (scores.problemSolving.score >= 70) {
     strengths.push("Explained meaningful parts of the approach and connected them to the implementation.");
-  } else {
-    strengths.push("Asked for guidance when useful instead of staying blocked silently.");
   }
 
-  if (scores.communication.score >= 70) {
-    strengths.push("Maintained a steady candidate presence with enough verbal signal for evaluation.");
-  } else {
-    strengths.push("Preserved the written transcript so the interviewer still had context to respond to.");
-  }
 
   return strengths.slice(0, 3);
 }
@@ -45,7 +36,7 @@ function selectAreasToImprove(scores: DeterministicInterviewScores) {
     },
     {
       score: scores.communication.score,
-      text: "Keep the camera-facing explanation steady and reduce long pauses during the final walkthrough."
+      text: "Answer the question directly and explain your reasoning with a concrete example."
     }
   ].sort((first, second) => first.score - second.score);
 
