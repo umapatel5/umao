@@ -51,6 +51,11 @@ export default function HomePage() {
       </section>
 
       <section className="site-preview-section" id="try-demo" aria-label="Preview of the coding interview workspace">
+        <h2>Meet Daniel, your interviewer.</h2>
+        <video controls playsInline preload="metadata" aria-label="Recorded Umao interview with Daniel" style={{ display: "block", width: "100%", aspectRatio: "3006 / 1712", background: "#241c20", marginBottom: 32 }}>
+          <source src="/interview-demo.mp4" type="video/mp4" />
+          Your browser cannot play this recording. <a href="/interview-demo.mp4">Open the interview video</a>.
+        </video>
         <p className="site-preview-caption">A coding problem. A conversation. Room to figure it out.</p>
         <InterviewProductMockup />
       </section>
