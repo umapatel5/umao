@@ -7,9 +7,9 @@ A Next.js TypeScript AI technical interview simulator with role-based practice s
 - [Source code](https://github.com/umapatel5/umao)
 - [Live website](https://umao.vercel.app/)
 
-**Live video availability:** The Tavus video interviewer integration is implemented, but live avatar sessions are currently paused because the provider's usage credits have run out. Additional credits are not enabled for this portfolio demo. This is a provider usage limit, rather than an unfinished avatar integration. The application includes a local avatar and browser speech fallback. Text AI responses require a configured, funded OpenAI account.
+Live interviews combine Gemini-generated responses with a Tavus video interviewer. OpenAI is supported as an alternative text provider. Provider credentials and available quota are required; a local fallback is available if a provider cannot be reached.
 
-The landing page includes an interactive Two Sum demo: edit JavaScript, run tests, reset the code, explore a sample conversation, and review test-based feedback. The portrait and conversation are previews, not a live video call. Code execution requires an available runner; the deployed website may have fewer capabilities than a fully configured local installation.
+The landing page includes a recorded interview with Daniel and an interactive Two Sum demo: edit JavaScript, run tests, reset the code, explore a sample conversation, and review test-based feedback. The recording and sample conversation are not live calls. Code execution requires an available runner.
 
 ## Tech Stack
 
@@ -18,7 +18,7 @@ The landing page includes an interactive Two Sum demo: edit JavaScript, run test
 | Application | Next.js 15 App Router, React 18, TypeScript |
 | Interface | CSS, Lucide icons, responsive layouts, scroll reveal effects |
 | Code editor | Monaco Editor through `@monaco-editor/react` |
-| AI interviewer | OpenAI Chat Completions API, isolated behind `lib/ai/interviewer.ts` |
+| AI interviewer | Google Gemini API, with OpenAI Chat Completions as an alternative, behind `lib/ai/interviewer.ts` |
 | Video interviewer | Tavus Echo Mode and Daily JavaScript SDK; Umao supplies the response text |
 | Candidate voice | Browser speech recognition; typed responses remain available |
 | Voice fallback | Browser Web Speech API (`speechSynthesis`) |
@@ -28,7 +28,11 @@ The landing page includes an interactive Two Sum demo: edit JavaScript, run test
 | Deployment | Vercel for the web app; AWS ECS/Fargate infrastructure templates for the runner |
 | Validation | TypeScript, ESLint, runner integration tests, GitHub Actions |
 
-Camera measurements estimate face presence and head direction, not exact eye contact, emotions, identity, or ability. Analysis starts only with the camera and runs locally in a Web Worker. Stop camera terminates the worker; raw frames and landmarks are not saved or sent to an API. Poor lighting, occlusion, and device support may reduce accuracy. Model and runtime assets are served from `public/mediapipe`; the WASM assets match the installed `@mediapipe/tasks-vision` version and must be recopied if it is upgraded. No raw webcam video or microphone audio is saved by Umao's history database.
+**Privacy-first camera coaching:** Umao estimates face presence and camera-facing head direction locally in the browser, not exact eye contact. It does not assess emotions, identity, or ability, and raw camera frames are not stored or uploaded. Accuracy varies with lighting and device support.
+
+### Camera Runtime Maintenance
+
+Analysis starts only with the camera and runs in a Web Worker; stopping the camera terminates the worker. Frames and landmarks are not persisted. Model and runtime assets are served from `public/mediapipe`; the WASM assets match the installed `@mediapipe/tasks-vision` version and must be recopied if it is upgraded. Umao's history database does not store raw webcam video or microphone audio.
 
 Umao is built as an end-to-end technical interview practice platform: candidates choose a role and coding problem, solve in a Monaco-powered workspace, talk with an AI interviewer, receive scored feedback, and review saved interview history.
 
@@ -144,7 +148,7 @@ Connect a PostgreSQL database (for example, through Vercel Storage) and set `DAT
 - Auth, local persistence, saved history, scoring, and progress analytics are implemented for local development.
 - Python, JavaScript, Java, and C++ execution paths are implemented locally and through the Docker runner.
 - Voice input, browser speech fallback, Tavus avatar fallback, and webcam signal tracking are implemented without storing raw media.
-- Tavus live video is paused due to exhausted usage credits. Browser voice quality and face-detection availability depend on the browser/device.
+- Tavus live video and Gemini conversation responses are enabled on the live demo. Browser voice quality and face-detection availability depend on the browser/device.
 - AWS templates and Docker configuration are included; this does not mean AWS resources are deployed. The workflow validates changes and gates future deployment work.
 
 ## Future Integration Points

@@ -42,10 +42,6 @@ export default function HomePage() {
             </Link>
             <a className="site-button site-button-secondary site-button-large" href="#try-demo">Try the demo</a>
           </div>
-          <p className="site-demo-notice">
-            Demo note: the live video interviewer is currently paused due to provider usage limits.
-            You can still explore the interactive demo below.
-          </p>
         </div>
 
       </section>
