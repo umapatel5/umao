@@ -3,6 +3,7 @@ import { ArrowRight, BarChart3, Code2, MessageCircle, Mic, Sparkles, Video } fro
 import { InterviewProductMockup } from "@/components/InterviewProductMockup";
 import { MarketingShell } from "@/components/MarketingShell";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { codingProblems, interviewRoles } from "@/lib/problems/problem-library";
 
 const workflowSteps = [
   {
@@ -33,7 +34,6 @@ export default function HomePage() {
           <h1>Practice for your next technology interview.</h1>
           <p>
             Work through a coding problem, talk it out, and get feedback on what to try next.
-            A little practice goes a long way.
           </p>
           <div className="site-action-row">
             <Link className="site-button site-button-primary site-button-large" href="/signup">
@@ -41,6 +41,9 @@ export default function HomePage() {
               <ArrowRight aria-hidden size={18} />
             </Link>
             <a className="site-button site-button-secondary site-button-large" href="#try-demo">Try the demo</a>
+          </div>
+          <div className="site-practice-counts">
+            {codingProblems.length} coding problems · 4 coding languages · {interviewRoles.length} engineering roles
           </div>
         </div>
 
@@ -52,7 +55,7 @@ export default function HomePage() {
           <source src="/interview-demo.mp4" type="video/mp4" />
           Your browser cannot play this recording. <a href="/interview-demo.mp4">Open the interview video</a>.
         </video>
-        <p className="site-preview-caption">A coding problem. A conversation. Room to figure it out.</p>
+        <p className="site-preview-caption">A coding problem. A conversation. Great Feedback.</p>
         <InterviewProductMockup />
       </section>
 
@@ -65,7 +68,6 @@ export default function HomePage() {
 
       <section className="site-how-section" id="how-it-works">
         <div className="site-how-heading">
-          <span className="site-section-kicker">How it feels</span>
           <h2>Three simple steps before your real interview.</h2>
           <p>
             No giant maze of pages. Just choose a session, practice, and use the feedback to decide
@@ -93,23 +95,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="site-note-section">
-        <div>
-          <span className="site-section-kicker">Made to feel human</span>
-          <h2>Practice without feeling like you are talking to a robot.</h2>
-          <p>
-            The app keeps the useful parts of technical interview prep: coding, speaking clearly,
-            staying present on camera, and understanding what improved after each session.
-          </p>
-        </div>
-        <Link className="site-button site-button-primary site-button-large" href="/signup">
-          Create your practice space
-          <ArrowRight aria-hidden size={18} />
-        </Link>
-      </section>
-
       <section className="site-final-cta">
-        <h2>Ready for a calmer practice round?</h2>
+        <h2>Ready for a practice round?</h2>
         <p>Make an account, pick a role, and start with one interview.</p>
         <Link className="site-button site-button-primary site-button-large" href="/signup">
           Start practicing
