@@ -87,7 +87,7 @@ export const codingProblems: CodingProblem[] = [
   },
   {
     id: "two-sum-follow-up",
-    title: "Two Sum With Interview Follow-up",
+    title: "Two Sum",
     difficulty: "Easy",
     durationMinutes: 35,
     topics: ["Arrays", "Hash Maps"],

@@ -25,7 +25,7 @@ const initialMessages: InterviewMessage[] = [
     id: "initial-interviewer",
     role: "interviewer",
     timestamp: "00:05",
-    text: "Hi, glad you're here. Before we start coding, tell me a little about your experience and a project you've worked on. What did you build, and what was your part in it?"
+    text: "Hey, nice to meet you! To start, could you tell me a little about yourself and what you've been working on recently?"
   },
   {
     id: "initial-system",
@@ -103,7 +103,7 @@ export function InterviewWorkspace({
     startTavusAvatarSession({
       conversationalContext: tavusContext,
       customGreeting:
-        "Hi, I am your Umao interviewer. Start by explaining how you understand the problem."
+        initialMessages[0].text
     }).then((session) => {
       if (didCancel) {
         return;
