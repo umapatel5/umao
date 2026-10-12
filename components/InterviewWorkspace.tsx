@@ -25,7 +25,7 @@ const initialMessages: InterviewMessage[] = [
     id: "initial-interviewer",
     role: "interviewer",
     timestamp: "00:05",
-    text: "Hey, nice to meet you! To start, could you tell me a little about yourself and what you've been working on recently?"
+    text: "Hey, I'm Daniel, your interviewer. Nice to meet you! To start, could you tell me a little about yourself and what you've been working on recently?"
   },
   {
     id: "initial-system",

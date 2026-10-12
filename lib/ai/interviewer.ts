@@ -184,6 +184,7 @@ function buildMessages(context: InterviewerContext) {
         {
           codingProblem: context.problem,
           selectedRole: context.role,
+          interviewerName: "Daniel",
           selectedDifficulty: context.selectedDifficulty,
           selectedTopic: context.selectedTopic,
           roleSpecificGuidance: getRoleFollowUp(context.role),
