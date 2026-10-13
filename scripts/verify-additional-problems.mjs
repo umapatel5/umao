@@ -28,8 +28,8 @@ const solutions = {
 };
 for (const problem of module.exports.additionalProblems) {
   for (const [language, code] of Object.entries(solutions[problem.id])) {
-    const response = await fetch(process.env.CODE_RUNNER_TEST_URL ?? "http://127.0.0.1:8082/run", {
-      method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.CODE_RUNNER_SERVICE_TOKEN ?? "local-test-token"}` }, body: JSON.stringify({ language, code, problem })
+    const response = await fetch(process.env.CODE_RUNNER_TEST_URL ?? "http://127.0.0.1:8080/run", {
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.CODE_RUNNER_SERVICE_TOKEN ?? "local-dev-runner-token"}` }, body: JSON.stringify({ language, code, problem })
     });
     const result = await response.json();
     assert(response.ok && result.passed, `${problem.id} ${language}: ${JSON.stringify(result)}`);

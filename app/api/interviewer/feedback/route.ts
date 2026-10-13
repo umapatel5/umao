@@ -1,26 +1,27 @@
 import { NextResponse } from "next/server";
 import { getProblemById } from "@/lib/problems/problem-library";
+import { guardRequest, isRecord, readJson, requestError } from "@/lib/security/request-guard";
+import { validMessages, validRun } from "@/lib/security/interview-validation";
+import { assessFeedback } from "@/lib/scoring/feedback-assessment";
+import type { InterviewMessage } from "@/types/interviewer";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const guard = await guardRequest(request, "ai-feedback", 10);
+  if (guard.error) return guard.error;
   if (!process.env.GEMINI_API_KEY) {
     return NextResponse.json({ error: "AI feedback unavailable" }, { status: 503 });
   }
-  const raw = await request.text();
-  if (raw.length > 100000) return NextResponse.json({ error: "Interview too large" }, { status: 413 });
   let input;
-  try { input = JSON.parse(raw); } catch {
-    return NextResponse.json({ error: "Invalid interview" }, { status: 400 });
-  }
-  if (!input || typeof input.code !== "string" || !Array.isArray(input.messages)) {
+  try { input = await readJson(request); } catch (error) { return requestError(error); }
+  if (!isRecord(input) || typeof input.code !== "string" || input.code.length > 20_000 || typeof input.language !== "string" || typeof input.problemId !== "string" || !validMessages(input.messages) || !validRun(input.latestRun)) {
     return NextResponse.json({ error: "Invalid interview" }, { status: 400 });
   }
   try {
     const problem = getProblemById(input.problemId);
     const starter = problem.starterCode[input.language as keyof typeof problem.starterCode];
-    const codeChanged = typeof starter === "string" && input.code.replace(/\s/g, "") !== starter.replace(/\s/g, "");
-    const candidateAnswers = input.messages.filter((message: { role?: string; text?: unknown }) => message.role === "candidate" && typeof message.text === "string");
+    const codeChanged = input.code.trim().length > 0 && typeof starter === "string" && input.code.replace(/\s/g, "") !== starter.replace(/\s/g, "");
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite")}:generateContent`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
@@ -34,16 +35,7 @@ export async function POST(request: Request) {
     if (!response.ok) throw new Error("Provider unavailable");
     const payload = await response.json();
     const text = payload.candidates?.[0]?.content?.parts?.filter((part: { thought?: boolean }) => !part.thought).map((part: { text?: string }) => part.text ?? "").join("");
-    const feedback = JSON.parse(text ?? "");
-    const hasEvidence = (quote: unknown) => typeof quote === "string" && quote.trim().length >= 8 && candidateAnswers.some((answer: { text: string }) => answer.text.includes(quote));
-    const strengths = Array.isArray(feedback.strengths) ? feedback.strengths.slice(0, 3).filter((item: { text?: unknown; evidence?: unknown }) => item && typeof item.text === "string" && item.text.length <= 2000 && hasEvidence(item.evidence)).map((item: { text: string; evidence: string }) => `${item.text} Evidence: “${item.evidence}”`) : [];
-    feedback.strengths = strengths;
-    const communication = feedback.communication;
-    const substantive = candidateAnswers.filter((answer: { text: string }) => answer.text.trim().split(/\s+/).length >= 12).length;
-    const validCommunication = substantive >= 3 && communication && hasEvidence(communication.evidence) && [communication.relevance, communication.clarity, communication.reasoning].every((value) => Number.isInteger(value) && value >= 0 && value <= 100);
-    const validList = (value: unknown): value is string[] => Array.isArray(value) && value.length <= 3 && value.every((item) => typeof item === "string" && item.length <= 2000);
-    if (!validList(feedback.strengths) || !validList(feedback.areasToImprove) || typeof feedback.personalizedFeedback !== "string" || feedback.personalizedFeedback.length > 5000) throw new Error("Invalid feedback");
-    return NextResponse.json({ communication: validCommunication ? { label: "Communication", assessed: true, score: Math.round((communication.relevance + communication.clarity + communication.reasoning) / 3), summary: "AI assessment of relevance, clarity, and explanation quality, not speaking time or camera presence.", signals: [`Relevance: ${communication.relevance}/100`, `Clarity: ${communication.clarity}/100`, `Reasoning: ${communication.reasoning}/100`, `Evidence: ${communication.evidence}`] } : null, feedback: { strengths: feedback.strengths, areasToImprove: feedback.areasToImprove, personalizedFeedback: feedback.personalizedFeedback, provider: "llm" } });
+    return NextResponse.json(assessFeedback(JSON.parse(text ?? ""), input.messages as InterviewMessage[], codeChanged));
   } catch {
     return NextResponse.json({ error: "AI feedback unavailable; retain local feedback" }, { status: 503 });
   }

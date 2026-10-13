@@ -48,7 +48,8 @@ export async function startTavusAvatarSession({
       "Content-Type": "application/json",
       "x-api-key": apiKey
     },
-    body: JSON.stringify(requestBody)
+    body: JSON.stringify(requestBody),
+    signal: AbortSignal.timeout(20_000)
   });
 
   const payload = (await response.json().catch(() => null)) as TavusConversationResponse | { message?: string } | null;
@@ -86,11 +87,12 @@ export async function endTavusAvatarSession(conversationId: string) {
     return;
   }
 
-  const response = await fetch(`${tavusApiBaseUrl}/conversations/${conversationId}/end`, {
+  const response = await fetch(`${tavusApiBaseUrl}/conversations/${encodeURIComponent(conversationId)}/end`, {
     method: "POST",
     headers: {
       "x-api-key": apiKey
-    }
+    },
+    signal: AbortSignal.timeout(10_000)
   });
 
   if (!response.ok) {

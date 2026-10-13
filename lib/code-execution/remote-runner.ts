@@ -1,7 +1,7 @@
 import type { RunnerInput } from "@/lib/code-execution/shared";
 import type { CodeRunResponse } from "@/types/code-execution";
 
-const REMOTE_RUNNER_TIMEOUT_MS = 5000;
+const REMOTE_RUNNER_TIMEOUT_MS = 45_000;
 
 export function isRemoteRunnerConfigured() {
   return Boolean(process.env.CODE_RUNNER_SERVICE_URL);
@@ -12,6 +12,10 @@ export async function runRemoteCode({ code, language, problem }: RunnerInput): P
 
   if (!serviceUrl) {
     throw new Error("CODE_RUNNER_SERVICE_URL is not configured.");
+  }
+
+  if (!process.env.CODE_RUNNER_SERVICE_TOKEN) {
+    return { error: "Code runner authentication is not configured.", language, passed: false, results: [], runtimeMs: 0, stdout: "" };
   }
 
   const controller = new AbortController();
@@ -47,6 +51,9 @@ export async function runRemoteCode({ code, language, problem }: RunnerInput): P
       };
     }
 
+    if (!("results" in payload) || !Array.isArray(payload.results) || typeof payload.passed !== "boolean" || payload.language !== language) {
+      return { error: "Code runner returned an invalid response.", language, passed: false, results: [], runtimeMs: 0, stdout: "" };
+    }
     return payload as CodeRunResponse;
   } catch (error) {
     return {

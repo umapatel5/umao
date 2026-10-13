@@ -1,0 +1,10 @@
+.git
+.vercel
+.env
+.env.*
+.data
+.next
+node_modules
+*.mov
+public/demo
+public/mediapipe

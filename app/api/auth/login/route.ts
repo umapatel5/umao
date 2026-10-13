@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { loginUser } from "@/lib/auth/auth-service";
+import { guardRequest, isRecord, readJson, requestError } from "@/lib/security/request-guard";
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { email?: string; password?: string };
+  const guard = await guardRequest(request, "login", 10, false);
+  if (guard.error) return guard.error;
+  let body;
+  try { body = await readJson(request, 128_000); } catch (error) { return requestError(error); }
+  if (!isRecord(body) || typeof body.email !== "string" || typeof body.password !== "string") {
+    return NextResponse.json({ error: "Invalid login details." }, { status: 400 });
+  }
   const result = await loginUser({
     email: body.email ?? "",
     password: body.password ?? ""

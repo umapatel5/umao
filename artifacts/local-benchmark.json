@@ -1,0 +1,23 @@
+{
+  "measuredAt": "2026-10-13T01:47:46.358Z",
+  "environment": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "node": "v22.22.1",
+    "cpu": "Apple M3",
+    "deployment": "local Next.js production build; local PostgreSQL 16; no paid providers"
+  },
+  "integrationChecks": 31,
+  "benchmark": {
+    "endpoint": "GET /api/auth/me",
+    "requests": 100,
+    "concurrency": 5,
+    "failures": 0,
+    "warmupRequests": 5,
+    "p50Ms": 6.23,
+    "p95Ms": 24.34,
+    "maxMs": 35.05,
+    "elapsedMs": 203,
+    "scope": "Local session reads only; excludes AI latency, code compilation, and production network latency. No before/after comparison."
+  }
+}

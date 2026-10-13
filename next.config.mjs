@@ -7,6 +7,9 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   devIndicators: false,
   outputFileTracingRoot: projectRoot,
+  outputFileTracingIncludes: {
+    "/api/code/run": ["./runner-service/server.mjs", "./runner-service/process-runner.mjs"]
+  },
   outputFileTracingExcludes: {
     "*": [".data/**/*", ".env", ".env*.local"]
   }

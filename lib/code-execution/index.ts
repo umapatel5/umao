@@ -3,12 +3,20 @@ import { runJavaCode } from "@/lib/code-execution/java-runner";
 import { runJavaScriptCode } from "@/lib/code-execution/javascript-runner";
 import { runPythonCode } from "@/lib/code-execution/python-runner";
 import { isRemoteRunnerConfigured, runRemoteCode } from "@/lib/code-execution/remote-runner";
+import { isVercelSandboxConfigured, runVercelSandboxCode } from "@/lib/code-execution/vercel-sandbox-runner";
 import type { RunnerInput } from "@/lib/code-execution/shared";
 import type { CodeRunResponse } from "@/types/code-execution";
 
 export async function runCodeForProblem(input: RunnerInput): Promise<CodeRunResponse> {
+  if (isVercelSandboxConfigured()) {
+    return runVercelSandboxCode(input);
+  }
   if (isRemoteRunnerConfigured()) {
     return runRemoteCode(input);
+  }
+
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL || process.env.ALLOW_UNSAFE_LOCAL_CODE_EXECUTION !== "true") {
+    return { error: "Code execution requires a configured isolated runner in production.", language: input.language, passed: false, results: [], runtimeMs: 0, stdout: "" };
   }
 
   const { code, language, problem } = input;

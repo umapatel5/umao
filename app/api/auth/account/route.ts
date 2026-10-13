@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { updateAccount } from "@/lib/auth/auth-service";
+import { guardRequest, readJson, requestError } from "@/lib/security/request-guard";
 
 export async function PATCH(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) return NextResponse.json({ error: "Request not allowed." }, { status: 403 });
-  const body = await request.json().catch(() => null);
-  if (!body || (body.name === undefined && body.newPassword === undefined) || ["name", "currentPassword", "newPassword"].some((key) => body[key] !== undefined && (typeof body[key] !== "string" || body[key].length > 128))) {
+  const guard = await guardRequest(request, "account", 10);
+  if (guard.error) return guard.error;
+  let body;
+  try { body = await readJson(request, 128_000) as Record<string, string>; } catch (error) { return requestError(error); }
+  if (!body || (body.name === undefined && body.newPassword === undefined) || ["name", "currentPassword", "newPassword"].some((key) => body[key] !== undefined && (typeof body[key] !== "string" || (key !== "currentPassword" && body[key].length > 128)))) {
     return NextResponse.json({ error: "Invalid account update." }, { status: 400 });
   }
   try {

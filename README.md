@@ -24,9 +24,9 @@ The landing page includes a recorded interview with Daniel and an interactive Tw
 | Voice fallback | Browser Web Speech API (`speechSynthesis`) |
 | Camera signals | MediaPipe Face Landmarker, self-hosted model and WASM, local Web Worker inference for face presence and estimated head direction |
 | Accounts and history | Custom server-side authentication, Node.js scrypt password hashing, PostgreSQL persistence; local JSON for development |
-| Execution | Python, Node.js/JavaScript, Java, C++; separate runner service and Docker configuration |
-| Deployment | Vercel for the web app; AWS ECS/Fargate infrastructure templates for the runner |
-| Validation | TypeScript, ESLint, runner integration tests, GitHub Actions |
+| Execution | Python, JavaScript, Java, C++; disposable Vercel microVMs in production and isolated Docker jobs locally |
+| Deployment | Vercel web app and Sandbox, with a project-scoped language runtime image |
+| Validation | Node test runner, API/PostgreSQL/runner integration checks, TypeScript, ESLint, GitHub Actions |
 
 **Privacy-first camera coaching:** Umao estimates face presence and camera-facing head direction locally in the browser, not exact eye contact. It does not assess emotions, identity, or ability, and raw camera frames are not stored or uploaded. Accuracy varies with lighting and device support.
 
@@ -44,7 +44,16 @@ Umao is built as an end-to-end technical interview practice platform: candidates
 - Tavus avatar integration behind a provider abstraction, with local avatar fallback.
 - Webcam attention metrics without storing or uploading raw media.
 - Deterministic interview scoring with saved history and progress analytics.
-- Docker-ready multi-language runner and AWS ECS/Fargate deployment templates.
+- Multi-language execution with per-job isolation, bounded output, quotas, and timeout cleanup.
+- API validation, persistent quotas, session revocation, and automated regression checks.
+
+## Engineering
+
+- [Architecture and data flow](docs/ARCHITECTURE.md)
+- [Security boundaries and isolated runner setup](docs/SECURITY.md)
+- [Testing and measured local results](docs/TESTING.md)
+
+Checks use disposable local accounts and mocked text/video providers. No paid API calls are needed to run the test suite. Performance results are explicitly local measurements, not production latency or a claimed improvement over a baseline.
 
 ## Quick Start
 
@@ -64,21 +73,7 @@ npm run build
 npm audit
 ```
 
-`npm test` verifies the standalone multi-language runner. With Docker Desktop running:
-
-```bash
-docker compose -f docker-compose.runner.yml up --build
-npm test
-```
-
-Without Docker, you can run the service directly when Python 3, Node, Java, and g++ are installed:
-
-```bash
-RUNNER_SHARED_TOKEN=local-dev-runner-token node runner-service/server.mjs
-npm test
-```
-
-The test script targets `http://127.0.0.1:8080/run` and uses the local development runner token by default.
+`npm test` runs offline authentication, scoring, request-boundary, provider-failure, and sandbox-lifecycle regressions. See [testing instructions](docs/TESTING.md) for PostgreSQL, HTTP API, and four-language integration checks. Use Node.js 22 for the verification scripts and CI.
 
 ## Structure
 
@@ -97,28 +92,25 @@ The test script targets `http://127.0.0.1:8080/run` and uses the local developme
 
 ## Code Execution
 
-Local app with in-process execution fallback:
+With Docker Desktop running, build and start the isolated supervisor:
 
 ```bash
-npm run dev
+docker build -f runner-service/Dockerfile.sandbox -t umao-sandbox:local .
+NODE_ENV=production RUNNER_SHARED_TOKEN=local-dev-runner-token \
+  RUNNER_SANDBOX_IMAGE=umao-sandbox:local node runner-service/server.mjs
 ```
 
-Containerized runner for development:
+In another terminal:
 
 ```bash
-docker compose -f docker-compose.runner.yml up --build
-CODE_RUNNER_SERVICE_URL=http://localhost:8080 CODE_RUNNER_SERVICE_TOKEN=local-dev-runner-token npm run dev
+CODE_RUNNER_SERVICE_URL=http://127.0.0.1:8080 \
+  CODE_RUNNER_SERVICE_TOKEN=local-dev-runner-token npm run dev
+npm run test:runner
+npm run test:problems
+npm run test:runner-security
 ```
 
-The Next.js app calls the remote runner only when `CODE_RUNNER_SERVICE_URL` is set. Otherwise it uses the local in-process runner. In production, keep the runner private and reachable only from the application service.
-
-Runner verification with Docker Desktop running:
-
-```bash
-npm test
-```
-
-Use `CODE_RUNNER_TEST_URL` and `CODE_RUNNER_SERVICE_TOKEN` only when testing a non-default runner URL or token.
+On Vercel, each request uses a fresh nonpersistent Sandbox microVM with network access denied. Other hosts can use the authenticated Docker supervisor. Submitted code never runs directly on the production Next.js host. The example token is for loopback tests only. Compose and in-process modes require explicit unsafe development opt-ins and are for trusted fixtures, not public traffic. See [security requirements](docs/SECURITY.md).
 
 ## Environment
 
@@ -127,7 +119,9 @@ Create `.env.local` from `.env.example` and fill only the services you want to u
 - `GEMINI_API_KEY` and `GEMINI_MODEL`: optional Gemini interviewer provider (default `gemini-3.5-flash-lite`). Gemini takes priority when configured. Interview answers, problem details, code, test results, and conversation history are sent server-side to Google; no webcam or microphone media is sent to Gemini. Free-tier access depends on project eligibility; verify billing and quotas in AI Studio. Free-tier content may be used by Google to improve its products; avoid sensitive information. Provider errors, timeouts, or quota limits fall back to visibly labeled demo replies.
 - `OPENAI_API_KEY` and `OPENAI_MODEL`: optional alternative AI interviewer provider.
 - `TAVUS_API_KEY`, `TAVUS_ECHO_PERSONA_ID`, `TAVUS_PERSONA_ID`, `TAVUS_REPLICA_ID`, `TAVUS_TEST_MODE`: optional Tavus avatar integration.
-- `CODE_RUNNER_SERVICE_URL` and `CODE_RUNNER_SERVICE_TOKEN`: optional private execution service. Leave blank for local in-process execution.
+- `CODE_RUNNER_SERVICE_URL` and `CODE_RUNNER_SERVICE_TOKEN`: authenticated Docker supervisor for local development or non-Vercel hosting.
+- `UMAO_USE_VERCEL_SANDBOX=true`: optional local cloud-runner verification using the linked project's OIDC token. Production Vercel authentication is automatic; credentials are never copied into candidate VMs.
+- `RUNNER_SANDBOX_IMAGE` and `RUNNER_SHARED_TOKEN`: runner-supervisor configuration; not frontend variables.
 
 Never commit real API keys, AWS credentials, raw webcam video, or microphone audio.
 
@@ -137,23 +131,32 @@ Umao is prepared for Vercel preview deployments. For a permanent public demo:
 
 1. Import `umapatel5/umao` into Vercel.
 2. Keep optional secrets such as `OPENAI_API_KEY` and Tavus values in Vercel environment variables.
-3. Configure a private runner service for production code execution; the local fallback depends on installed language runtimes and is not a production sandbox.
+3. Publish the language runtime image to the same project's Vercel Container Registry:
+
+   ```bash
+   vercel link --project umao
+   vercel vcr login docker
+   vercel vcr build docker . umao-code-sandbox:hardening-1 --push -- --file runner-service/Dockerfile.sandbox
+   ```
+
+   Wait for the image to be ready before deploying. `vercel.json` deploys the web app; each code request launches a disposable Sandbox using this image. The application does not host a shared execution process alongside its database/API credentials. Vercel Hobby includes a limited free Sandbox allowance and pauses at the limit instead of charging overages; other plans have different billing. See [current quotas](https://vercel.com/docs/sandbox/pricing).
 4. Deploy from the `main` branch. Local edits become live only after a deployment succeeds.
 
-Connect a PostgreSQL database (for example, through Vercel Storage) and set `DATABASE_URL` or `POSTGRES_URL` for Production before deploying account features. Credentials stay server-side. On first use the adapter creates `umao_state`, a single JSONB state row, with transactional row locking to prevent concurrent updates from losing accounts, sessions, or results. This preserves the existing repository contract for a small demo; it is not a high-volume relational schema. Use a pooled connection URL with TLS as supplied by the provider, separate databases for previews, and provider backups. Vercel account writes fail clearly when storage is missing rather than saving users to ephemeral `/tmp` files. Local JSON remains available outside Vercel for development. Previously lost temporary accounts cannot be recovered automatically and must be recreated after persistent storage is configured.
+Set `DATABASE_URL` or `POSTGRES_URL` for persistent accounts/history. The adapter retains the deployed single-row `umao_state` JSONB format and serializes mutations with row locking; no production schema migration was performed. This small-demo design is not a normalized, high-volume schema. Use a pooled provider URL with TLS, separate preview databases, and backups. Vercel account writes fail clearly without PostgreSQL; local JSON is development-only. See [architecture tradeoffs](docs/ARCHITECTURE.md).
 
 ## Current Status
 
 - A pink-and-white landing page with an inline interactive demo leads into login/sign-up and the interview application.
 - Auth, local persistence, saved history, scoring, and progress analytics are implemented for local development.
-- Python, JavaScript, Java, and C++ execution paths are implemented locally and through the Docker runner.
+- Python, JavaScript, Java, and C++ execution paths are implemented through disposable cloud VMs and the local Docker runner.
 - Voice input, browser speech fallback, Tavus avatar fallback, and webcam signal tracking are implemented without storing raw media.
 - Tavus live video and Gemini conversation responses are enabled on the live demo. Browser voice quality and face-detection availability depend on the browser/device.
-- AWS templates and Docker configuration are included; this does not mean AWS resources are deployed. The workflow validates changes and gates future deployment work.
+- GitHub Actions runs offline regressions, builds, disposable PostgreSQL/API tests, and isolated-runner checks without provider secrets. Both jobs passed in the [verified hardening release](https://github.com/umapatel5/umao/actions/runs/38335269037).
+- Historical AWS templates are retained as reference material and need redesign for the current isolated supervisor. No AWS resources were deployed.
 
 ## Future Integration Points
 
-- Configure and verify managed PostgreSQL storage in production; normalize the state schema before scaling beyond a small demo.
-- Deploy the code runner to private ECS/Fargate networking after approval.
+- Normalize PostgreSQL storage before scaling beyond a small demo.
+- Add server-attested code results before using practice scores as trusted assessments.
 - Add production monitoring dashboards and alarms.
 - Continue UI polish and deployment hardening.

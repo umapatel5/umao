@@ -7,7 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "test": "node scripts/verify-code-runner.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:runner": "node scripts/verify-code-runner.mjs",
+    "test:problems": "node scripts/verify-additional-problems.mjs",
+    "test:runner-security": "node scripts/verify-runner-security.mjs",
+    "test:sandbox": "node scripts/verify-vercel-sandbox.mjs",
+    "test:postgres": "node --test tests/postgres.integration.mjs",
+    "test:api": "node scripts/verify-api.mjs",
     "test:webcam": "node scripts/verify-webcam.mjs",
     "test:auth": "node scripts/verify-auth.mjs",
     "typecheck": "next typegen && tsc --noEmit"
@@ -16,9 +22,10 @@
     "@daily-co/daily-js": "^0.92.0",
     "@mediapipe/tasks-vision": "^1.1.0",
     "@monaco-editor/react": "^4.7.0",
+    "@vercel/sandbox": "^3.7.0",
     "lucide-react": "^0.468.0",
     "monaco-editor": "^0.57.0",
-    "next": "^15.5.24",
+    "next": "^15.5.27",
     "postgres": "^3.4.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -28,12 +35,14 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^15.5.24",
+    "eslint-config-next": "^15.5.27",
     "typescript": "^5.5.3"
   },
   "overrides": {
+    "dompurify": "3.4.17",
     "es-iterator-helpers": "1.2.1",
     "js-yaml": "4.3.2",
-    "postcss": "8.5.28"
+    "postcss": "8.5.28",
+    "source-map-js": "1.2.2"
   }
 }

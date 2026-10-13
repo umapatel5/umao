@@ -1,8 +1,10 @@
 # Umao Code Runner on AWS ECS/Fargate
 
-This folder contains deployment-ready configuration templates only. Do not create AWS resources until the owner approves the deployment plan and cost.
+These historical templates predate per-job Docker isolation and are not a verified deployment for the current supervisor. Do not deploy them unchanged or create paid AWS resources without the owner's approval.
 
-Recommended production topology:
+The current supervisor needs a dedicated Docker-capable host. Ordinary Fargate does not provide its required Docker daemon; privileged containers are [not supported on Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-security-considerations.html). A future deployment needs an EC2-backed supervisor or a redesign scheduling each job as its own isolated task. See [current security and local setup requirements](../../docs/SECURITY.md).
+
+Historical topology (not compatible with the current supervisor as written):
 
 - Run `runner-service` as a private ECS/Fargate service in private subnets.
 - Do not attach a public load balancer to the runner.

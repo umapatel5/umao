@@ -1,0 +1,6 @@
+FROM node:22-bookworm-slim
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends g++ openjdk-17-jdk-headless python3 \
+  && rm -rf /var/lib/apt/lists/*
+ENV HOME=/tmp PYTHONIOENCODING=utf-8
+USER node
