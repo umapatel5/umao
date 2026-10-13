@@ -74,7 +74,7 @@ This measures `GET /api/auth/me` on loopback. The captured run overlapped with a
 
 ## CI
 
-`.github/workflows/ci.yml` runs checks on pushes to `main` and pull requests. Separate jobs validate the application/PostgreSQL/API behavior and isolated runner. Tests use local service containers and mock providers; no deployment, provider key, or paid infrastructure is requested. The benchmark artifact is uploaded for inspection. Remote Actions execution must be checked after pushing; passing local equivalents does not imply an already-green GitHub run.
+`.github/workflows/ci.yml` runs checks on pushes to `main`, release branches, and pull requests. Separate jobs validate the application/PostgreSQL/API behavior and isolated runner. Tests use local service containers and mock providers; no deployment, provider key, or paid infrastructure is requested. The benchmark artifact is uploaded for inspection. Both jobs passed in the [hardening release run](https://github.com/umapatel5/umao/actions/runs/38335269037); future changes still require their own CI verification.
 
 ## Remaining Scope
 

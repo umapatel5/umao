@@ -151,7 +151,7 @@ Set `DATABASE_URL` or `POSTGRES_URL` for persistent accounts/history. The adapte
 - Python, JavaScript, Java, and C++ execution paths are implemented through disposable cloud VMs and the local Docker runner.
 - Voice input, browser speech fallback, Tavus avatar fallback, and webcam signal tracking are implemented without storing raw media.
 - Tavus live video and Gemini conversation responses are enabled on the live demo. Browser voice quality and face-detection availability depend on the browser/device.
-- CI configuration runs offline regressions, builds, disposable PostgreSQL/API tests, and isolated-runner checks without provider secrets. A remote CI run is verified only after the changes are pushed.
+- GitHub Actions runs offline regressions, builds, disposable PostgreSQL/API tests, and isolated-runner checks without provider secrets. Both jobs passed in the [verified hardening release](https://github.com/umapatel5/umao/actions/runs/38335269037).
 - Historical AWS templates are retained as reference material and need redesign for the current isolated supervisor. No AWS resources were deployed.
 
 ## Future Integration Points

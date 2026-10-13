@@ -1,6 +1,6 @@
 # Resume Bullets
 
-Each bullet below is 116 characters, counting spaces and punctuation but excluding the Markdown `- ` prefix. Use the CI wording once this change is pushed and its GitHub Actions run is verified. The test and concurrency numbers describe local verification, not production scale or user growth.
+Each bullet below is 116 characters, counting spaces and punctuation but excluding the Markdown `- ` prefix. The [GitHub Actions release run](https://github.com/umapatel5/umao/actions/runs/38335269037) passed both jobs. The test and concurrency numbers describe local verification, not production scale or user growth.
 
 - Built an interview platform with 4 coding languages, 11 coding problems, adaptive AI follow-ups, and saved feedback.
 - Secured accounts through salted password hashing, persistent rate limits, session revocation and scoped data access.
