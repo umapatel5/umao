@@ -1,19 +1,40 @@
 import { createServer } from "node:http";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { chown, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { randomUUID } from "node:crypto";
-import { spawn } from "node:child_process";
+import { randomUUID, timingSafeEqual } from "node:crypto";
+import { createProcessRunner } from "./process-runner.mjs";
 
 const PORT = Number(process.env.RUNNER_PORT ?? 8080);
-const EXECUTION_TIMEOUT_MS = Number(process.env.RUNNER_EXECUTION_TIMEOUT_MS ?? 2200);
-const COMPILE_TIMEOUT_MS = Number(process.env.RUNNER_COMPILE_TIMEOUT_MS ?? 8000);
+const EXECUTION_TIMEOUT_MS = Number(process.env.RUNNER_EXECUTION_TIMEOUT_MS ?? 5000);
+const COMPILE_TIMEOUT_MS = Number(process.env.RUNNER_COMPILE_TIMEOUT_MS ?? 15000);
 const MAX_CODE_LENGTH = Number(process.env.RUNNER_MAX_CODE_LENGTH ?? 20000);
 const MAX_BODY_BYTES = Number(process.env.RUNNER_MAX_BODY_BYTES ?? 128000);
 const MAX_OUTPUT_BYTES = Number(process.env.RUNNER_MAX_OUTPUT_BYTES ?? 64000);
 const RESULT_PREFIX = "__UMAO_RESULT__";
+const MAX_CONCURRENT_JOBS = Number(process.env.RUNNER_MAX_CONCURRENT_JOBS ?? 2);
+const MAX_JOB_DURATION_MS = Number(process.env.RUNNER_MAX_JOB_DURATION_MS ?? 30000);
+const WORKSPACE_ROOT = process.env.RUNNER_WORKSPACE_ROOT || tmpdir();
+const sandboxUid = process.getuid?.() || 1000;
+const sandboxGid = process.getgid?.() || 1000;
+const jobs = new Set();
+let activeJobs = 0;
+const singleJobPath = process.argv[2] === "--job" ? process.argv[3] : null;
 
-const server = createServer(async (request, response) => {
+if (!singleJobPath && !process.env.RUNNER_SHARED_TOKEN) throw new Error("RUNNER_SHARED_TOKEN is required.");
+if ((process.env.NODE_ENV === "production" || process.env.VERCEL) && !process.env.RUNNER_SANDBOX_IMAGE) {
+  throw new Error("Production execution requires RUNNER_SANDBOX_IMAGE and a local Docker supervisor.");
+}
+if (!process.env.RUNNER_SANDBOX_IMAGE && process.env.RUNNER_ALLOW_UNSAFE_LOCAL !== "true") {
+  throw new Error("Configure RUNNER_SANDBOX_IMAGE; unsafe development execution requires an explicit opt-in.");
+}
+for (const value of [EXECUTION_TIMEOUT_MS, COMPILE_TIMEOUT_MS, MAX_CODE_LENGTH, MAX_BODY_BYTES, MAX_OUTPUT_BYTES, MAX_CONCURRENT_JOBS, MAX_JOB_DURATION_MS]) {
+  if (!Number.isSafeInteger(value) || value <= 0) throw new Error("Runner limits must be positive integers.");
+}
+await mkdir(WORKSPACE_ROOT, { recursive: true });
+const runProcess = createProcessRunner({ uid: sandboxUid, gid: sandboxGid, maxOutputBytes: MAX_OUTPUT_BYTES, instanceId: process.env.RUNNER_INSTANCE_ID || randomUUID() });
+
+const server = singleJobPath ? null : createServer(async (request, response) => {
   try {
     if (request.url === "/health" && request.method === "GET") {
       return sendJson(response, 200, { ok: true, service: "umao-code-runner" });
@@ -27,7 +48,9 @@ const server = createServer(async (request, response) => {
       return sendJson(response, 401, { error: "Unauthorized runner request." });
     }
 
-    const body = await readJsonBody(request);
+    let body;
+    try { body = await readJsonBody(request); }
+    catch (error) { return sendJson(response, error.message.includes("large") ? 413 : 400, { error: error.message }); }
 
     if (!body || typeof body.code !== "string" || typeof body.language !== "string" || !body.problem) {
       return sendJson(response, 400, { error: "Expected code, language, and problem." });
@@ -37,34 +60,58 @@ const server = createServer(async (request, response) => {
       return sendJson(response, 413, { error: `Code is too large. Limit is ${MAX_CODE_LENGTH} characters.` });
     }
 
-    const result = await runCode(body.language, body.code, body.problem);
-    return sendJson(response, 200, result);
+    if (!["Python", "JavaScript", "Java", "C++"].includes(body.language) || !validProblem(body.problem)) return sendJson(response, 400, { error: "Invalid execution problem or language." });
+    if (activeJobs >= MAX_CONCURRENT_JOBS) return sendJson(response, 429, { error: "Runner is busy. Try again shortly." });
+
+    activeJobs++;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), MAX_JOB_DURATION_MS);
+    const disconnected = () => { if (!response.writableEnded) controller.abort(); };
+    response.on("close", disconnected);
+    jobs.add(controller);
+    try {
+      const result = await runCode(body.language, body.code, body.problem, controller.signal);
+      if (!response.destroyed) return sendJson(response, 200, result);
+    } finally {
+      clearTimeout(timer);
+      response.off("close", disconnected);
+      jobs.delete(controller);
+      activeJobs--;
+    }
   } catch (error) {
     console.error(JSON.stringify({ level: "error", message: error.message }));
     return sendJson(response, 500, { error: "Runner service failed." });
   }
 });
 
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(JSON.stringify({ level: "info", message: `Umao code runner listening on ${PORT}` }));
-});
+if (server) {
+  server.requestTimeout = 15000;
+  server.listen(PORT, process.env.RUNNER_HOST || "127.0.0.1", () => {
+    console.log(JSON.stringify({ level: "info", message: `Umao code runner listening on ${server.address().port}`, port: server.address().port }));
+  });
+  for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => {
+    for (const controller of jobs) controller.abort();
+    server.close();
+    server.closeAllConnections();
+  });
+}
 
-async function runCode(language, code, problem) {
+async function runCode(language, code, problem, signal) {
   switch (language) {
     case "Python":
-      return runPython(code, problem);
+      return runPython(code, problem, signal);
     case "JavaScript":
-      return runJavaScript(code, problem);
+      return runJavaScript(code, problem, signal);
     case "Java":
-      return runJava(code, problem);
+      return runJava(code, problem, signal);
     case "C++":
-      return runCpp(code, problem);
+      return runCpp(code, problem, signal);
     default:
       return { error: "Unsupported language.", language, passed: false, results: [], runtimeMs: 0, stdout: "" };
   }
 }
 
-async function runPython(code, problem) {
+async function runPython(code, problem, signal) {
   return withWorkspace("umao-python", async (workspace) => {
     const startedAt = performance.now();
     const candidatePath = join(workspace, "candidate.py");
@@ -76,7 +123,7 @@ async function runPython(code, problem) {
 
     for (const testCase of problem.testCases) {
       const payload = JSON.stringify({ args: testCase.input, functionName: problem.functionName });
-      const output = await runProcess("python3", ["-I", "-S", runnerPath, candidatePath, payload], workspace, EXECUTION_TIMEOUT_MS);
+      const output = await runProcess("python3", ["-I", "-S", runnerPath, candidatePath, payload], workspace, EXECUTION_TIMEOUT_MS, signal);
       results.push(toTestResult(testCase, output, parseLastJsonLine(output.stdout)));
     }
 
@@ -84,7 +131,7 @@ async function runPython(code, problem) {
   });
 }
 
-async function runJavaScript(code, problem) {
+async function runJavaScript(code, problem, signal) {
   return withWorkspace("umao-js", async (workspace) => {
     const startedAt = performance.now();
     const candidatePath = join(workspace, "candidate.js");
@@ -96,7 +143,7 @@ async function runJavaScript(code, problem) {
 
     for (const testCase of problem.testCases) {
       const payload = JSON.stringify({ args: testCase.input, functionName: problem.functionName });
-      const output = await runProcess("node", [runnerPath, candidatePath, payload], workspace, EXECUTION_TIMEOUT_MS);
+      const output = await runProcess("node", [runnerPath, candidatePath, payload], workspace, EXECUTION_TIMEOUT_MS, signal);
       results.push(toTestResult(testCase, output, parseLastJsonLine(output.stdout)));
     }
 
@@ -104,33 +151,33 @@ async function runJavaScript(code, problem) {
   });
 }
 
-async function runJava(code, problem) {
+async function runJava(code, problem, signal) {
   return withWorkspace("umao-java", async (workspace) => {
     const startedAt = performance.now();
     await writeFile(join(workspace, "Solution.java"), code, "utf8");
     await writeFile(join(workspace, "TestRunner.java"), createJavaRunner(problem), "utf8");
-    const compile = await runProcess("javac", ["Solution.java", "TestRunner.java"], workspace, COMPILE_TIMEOUT_MS);
+    const compile = await runProcess("javac", ["Solution.java", "TestRunner.java"], workspace, COMPILE_TIMEOUT_MS, signal);
 
     if (compile.timedOut || compile.exitCode !== 0) {
       return compileFailure("Java", problem, compile, performance.now() - startedAt);
     }
 
-    const output = await runProcess("java", ["-Xmx64m", "TestRunner"], workspace, EXECUTION_TIMEOUT_MS);
+    const output = await runProcess("java", ["-Xmx64m", "TestRunner"], workspace, EXECUTION_TIMEOUT_MS, signal);
     return prefixedResults("Java", problem, output, performance.now() - startedAt);
   });
 }
 
-async function runCpp(code, problem) {
+async function runCpp(code, problem, signal) {
   return withWorkspace("umao-cpp", async (workspace) => {
     const startedAt = performance.now();
     await writeFile(join(workspace, "main.cpp"), createCppRunner(code, problem), "utf8");
-    const compile = await runProcess("g++", ["-std=c++17", "-O0", "-Wall", "-Wextra", "main.cpp", "-o", "main"], workspace, COMPILE_TIMEOUT_MS);
+    const compile = await runProcess("g++", ["-std=c++17", "-O0", "-Wall", "-Wextra", "main.cpp", "-o", "main"], workspace, COMPILE_TIMEOUT_MS, signal);
 
     if (compile.timedOut || compile.exitCode !== 0) {
       return compileFailure("C++", problem, compile, performance.now() - startedAt);
     }
 
-    const output = await runProcess(join(workspace, "main"), [], workspace, EXECUTION_TIMEOUT_MS);
+    const output = await runProcess(join(workspace, "main"), [], workspace, EXECUTION_TIMEOUT_MS, signal);
     return prefixedResults("C++", problem, output, performance.now() - startedAt);
   });
 }
@@ -212,53 +259,10 @@ function aggregate(language, results, runtimeMs, stdout = "") {
   };
 }
 
-function runProcess(command, args, cwd, timeoutMs) {
-  return new Promise((resolve) => {
-    const child = spawn(command, args, {
-      cwd,
-      env: {
-        HOME: tmpdir(),
-        NODE_ENV: "production",
-        PATH: process.env.PATH ?? "/usr/bin:/bin:/usr/local/bin",
-        PYTHONIOENCODING: "utf-8"
-      },
-      shell: false,
-      stdio: ["ignore", "pipe", "pipe"]
-    });
-    let stdout = "";
-    let stderr = "";
-    let settled = false;
-    const timer = setTimeout(() => {
-      settled = true;
-      child.kill("SIGKILL");
-      resolve({ exitCode: null, stdout, stderr, timedOut: true });
-    }, timeoutMs);
-    child.stdout.on("data", (chunk) => {
-      stdout = appendBounded(stdout, chunk);
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr = appendBounded(stderr, chunk);
-    });
-    child.on("error", (error) => {
-      if (!settled) {
-        settled = true;
-        clearTimeout(timer);
-        resolve({ exitCode: null, stdout, stderr: error.message, timedOut: false });
-      }
-    });
-    child.on("close", (exitCode) => {
-      if (!settled) {
-        settled = true;
-        clearTimeout(timer);
-        resolve({ exitCode, stdout, stderr, timedOut: false });
-      }
-    });
-  });
-}
-
 async function withWorkspace(prefix, work) {
-  const workspace = await mkdtemp(join(tmpdir(), `${prefix}-${randomUUID()}-`));
+  const workspace = await mkdtemp(join(WORKSPACE_ROOT, `${prefix}-${randomUUID()}-`));
   try {
+    if (process.env.RUNNER_SANDBOX_IMAGE && process.getuid?.() === 0) await chown(workspace, sandboxUid, sandboxGid);
     return await work(workspace);
   } finally {
     await rm(workspace, { force: true, recursive: true });
@@ -419,22 +423,35 @@ try {
 
 function isAuthorized(request) {
   const token = process.env.RUNNER_SHARED_TOKEN;
-  return !token || request.headers.authorization === `Bearer ${token}`;
+  const actual = Buffer.from(request.headers.authorization ?? "");
+  const expected = Buffer.from(`Bearer ${token}`);
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+}
+
+function validProblem(problem) {
+  const identifier = (value) => typeof value === "string" && /^[a-zA-Z_][a-zA-Z0-9_]{0,79}$/.test(value);
+  return typeof problem.id === "string" && problem.id.length <= 100 && identifier(problem.functionName?.camel) && identifier(problem.functionName?.snake) &&
+    Array.isArray(problem.testCases) && problem.testCases.length > 0 && problem.testCases.length <= 50 &&
+    problem.testCases.every((test) => test && typeof test.name === "string" && Array.isArray(test.input) && test.input.length <= 10 && "expected" in test);
 }
 
 function readJsonBody(request) {
   return new Promise((resolve, reject) => {
-    let body = "";
+    const chunks = [];
+    let bytes = 0;
+    let tooLarge = false;
     request.on("data", (chunk) => {
-      body += chunk;
-      if (Buffer.byteLength(body) > MAX_BODY_BYTES) {
+      bytes += chunk.length;
+      if (bytes > MAX_BODY_BYTES) {
+        tooLarge = true;
         reject(new Error("Request body is too large."));
-        request.destroy();
+      } else if (!tooLarge) {
+        chunks.push(chunk);
       }
     });
     request.on("end", () => {
       try {
-        resolve(JSON.parse(body || "{}"));
+        resolve(JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}"));
       } catch {
         resolve(null);
       }
@@ -465,11 +482,6 @@ function userOutput(stdout) {
   return stdout.split("\n").filter((line) => line && !line.startsWith(RESULT_PREFIX)).join("\n");
 }
 
-function appendBounded(current, chunk) {
-  const next = current + chunk.toString("utf8");
-  return Buffer.byteLength(next, "utf8") <= MAX_OUTPUT_BYTES ? next : `${next.slice(0, MAX_OUTPUT_BYTES)}\n[output truncated]`;
-}
-
 function roundMs(value) {
   return Math.round(value * 100) / 100;
 }
@@ -480,4 +492,22 @@ function escape(value) {
 
 function escapeChar(value) {
   return String(value).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+// The cloud adapter invokes one job inside an already isolated, disposable VM.
+if (singleJobPath) {
+  const raw = await readFile(singleJobPath);
+  if (raw.length > MAX_BODY_BYTES) throw new Error("Request body is too large.");
+  const body = JSON.parse(raw.toString("utf8"));
+  if (!body || typeof body.code !== "string" || body.code.length > MAX_CODE_LENGTH ||
+      !["Python", "JavaScript", "Java", "C++"].includes(body.language) || !validProblem(body.problem)) {
+    throw new Error("Invalid execution problem or language.");
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MAX_JOB_DURATION_MS);
+  try {
+    console.log(JSON.stringify(await runCode(body.language, body.code, body.problem, controller.signal)));
+  } finally {
+    clearTimeout(timer);
+  }
 }

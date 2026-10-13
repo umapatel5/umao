@@ -139,7 +139,7 @@ async function run(language, code) {
   } catch (error) {
     throw new Error(
       `Could not reach Umao code runner at ${runnerUrl}. Start it with ` +
-        "`docker compose -f docker-compose.runner.yml up --build` before running `npm run test`. " +
+        "the isolated supervisor before running `npm run test:runner` (see docs/SECURITY.md). " +
         `Original error: ${error instanceof Error ? error.message : "unknown network error"}`
     );
   }

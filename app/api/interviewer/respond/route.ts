@@ -1,20 +1,19 @@
 import { NextResponse } from "next/server";
 import { generateInterviewerReply } from "@/lib/ai/interviewer";
-import type { InterviewerContext } from "@/types/interviewer";
+import { guardRequest, readJson, requestError } from "@/lib/security/request-guard";
+import { validInterviewerContext } from "@/lib/security/interview-validation";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const context = (await request.json().catch(() => null)) as Partial<InterviewerContext> | null;
-
-  if (!context || typeof context.candidateMessage !== "string") {
-    return NextResponse.json({ error: "Expected interviewer context." }, { status: 400 });
-  }
-
-  if (!context.problem || typeof context.currentCode !== "string" || !Array.isArray(context.messages)) {
+  const guard = await guardRequest(request, "ai-response", 40);
+  if (guard.error) return guard.error;
+  let context;
+  try { context = await readJson(request); } catch (error) { return requestError(error); }
+  if (!validInterviewerContext(context)) {
     return NextResponse.json({ error: "Interview context is incomplete." }, { status: 400 });
   }
 
-  const response = await generateInterviewerReply(context as InterviewerContext);
-  return NextResponse.json(response);
+  try { return NextResponse.json(await generateInterviewerReply(context)); }
+  catch (error) { return requestError(error); }
 }

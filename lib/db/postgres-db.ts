@@ -26,6 +26,22 @@ async function initialize() {
   await initialization;
 }
 
+export async function consumePersistentLimit(key: string, limit: number, windowMs: number) {
+  return updatePersistentDatabase((database) => {
+    const now = Date.now();
+    const buckets = database.rateLimits ??= {};
+    for (const id of Object.keys(buckets)) if (buckets[id].expiresAt <= now) delete buckets[id];
+    const existing = buckets[key];
+    if (!existing && Object.keys(buckets).length >= 10_000) {
+      return { allowed: false, retryAfter: Math.ceil(windowMs / 1000) };
+    }
+    const entry = existing ?? { count: 0, expiresAt: now + windowMs };
+    entry.count = Math.min(entry.count + 1, limit + 1);
+    buckets[key] = entry;
+    return { allowed: entry.count <= limit, retryAfter: Math.max(1, Math.ceil((entry.expiresAt - now) / 1000)) };
+  });
+}
+
 export async function readPersistentDatabase(): Promise<LocalDatabase> {
   await initialize();
   const rows = await getConnection()`SELECT data FROM umao_state WHERE id = 1`;

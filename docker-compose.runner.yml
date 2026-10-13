@@ -2,16 +2,23 @@ services:
   code-runner:
     build:
       context: .
-      dockerfile: runner-service/Dockerfile
+      dockerfile: runner-service/Dockerfile.sandbox
     environment:
-      NODE_ENV: production
-      RUNNER_COMPILE_TIMEOUT_MS: "8000"
-      RUNNER_EXECUTION_TIMEOUT_MS: "2200"
+      # Trusted local fixtures only; use per-job isolation for public deployment.
+      NODE_ENV: development
+      RUNNER_ALLOW_UNSAFE_LOCAL: "true"
+      RUNNER_HOST: "0.0.0.0"
+      RUNNER_COMPILE_TIMEOUT_MS: "15000"
+      RUNNER_EXECUTION_TIMEOUT_MS: "5000"
       RUNNER_MAX_CODE_LENGTH: "20000"
       RUNNER_PORT: "8080"
       RUNNER_SHARED_TOKEN: local-dev-runner-token
+    volumes:
+      - ./runner-service:/runner:ro
+    working_dir: /runner
+    command: ["node", "server.mjs"]
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -21,4 +28,4 @@ services:
     mem_limit: 512m
     cpus: 1.0
     tmpfs:
-      - /tmp:rw,noexec,nosuid,size=128m
+      - /tmp:rw,nosuid,nodev,size=128m

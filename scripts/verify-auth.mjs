@@ -21,7 +21,7 @@ function load(relativePath, dependencies = {}) {
 }
 try {
   const db = load("../lib/db/local-db.ts");
-  const dependencies = { "@/lib/db/local-db": db, "next/headers": { cookies: async () => ({ get: () => sessionId ? { value: sessionId } : undefined }) } };
+  const dependencies = { "@/lib/db/local-db": db, "@/lib/auth/password": load("../lib/auth/password.ts"), "next/headers": { cookies: async () => ({ get: () => sessionId ? { value: sessionId } : undefined }) } };
   const auth = load("../lib/auth/auth-service.ts", dependencies);
   const signup = await auth.signUpUser({ email: " Test@example.com ", name: "Test User", password: "test-password-only" });
   assert.equal(signup.user.email, "test@example.com");

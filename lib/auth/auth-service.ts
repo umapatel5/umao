@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { readDatabase, updateDatabase, type StoredSession, type StoredUser } from "@/lib/db/local-db";
 import type { AuthUser } from "@/types/account";
 
@@ -30,7 +30,7 @@ export async function signUpUser({
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedName = name.trim();
 
-  if (!normalizedName || normalizedName.length < 2) {
+  if (!normalizedName || normalizedName.length < 2 || normalizedName.length > 80) {
     return { error: "Enter your name." };
   }
 
@@ -38,11 +38,15 @@ export async function signUpUser({
     return { error: "Enter a valid email address." };
   }
 
-  if (password.length < 8) {
+  if (password.length < 8 || password.length > 128) {
     return { error: "Password must be at least 8 characters." };
   }
 
-  return updateDatabase(async (database) => {
+  if ((await readDatabase()).users.some((user) => user.email === normalizedEmail)) {
+    return { error: "An account with this email already exists." };
+  }
+  const passwordHash = await hashPassword(password);
+  return updateDatabase((database) => {
     if (database.users.some((user) => user.email === normalizedEmail)) {
       return { error: "An account with this email already exists." };
     }
@@ -52,7 +56,7 @@ export async function signUpUser({
       email: normalizedEmail,
       id: crypto.randomUUID(),
       name: normalizedName,
-      passwordHash: hashPassword(password)
+      passwordHash
     };
 
     const session = createSession(user.id);
@@ -73,10 +77,17 @@ export async function loginUser({
 }): Promise<AuthResult> {
   const normalizedEmail = email.trim().toLowerCase();
 
-  return updateDatabase(async (database) => {
+  // Earlier releases accepted longer passwords. Preserve existing users' ability to sign in.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) return { error: "Email or password is incorrect." };
+  const existingUser = (await readDatabase()).users.find((item) => item.email === normalizedEmail);
+  if (!existingUser || !await verifyPassword(password, existingUser.passwordHash)) {
+    return { error: "Email or password is incorrect." };
+  }
+
+  return updateDatabase((database) => {
     const user = database.users.find((item) => item.email === normalizedEmail);
 
-    if (!user || !verifyPassword(password, user.passwordHash)) {
+    if (!user || user.passwordHash !== existingUser.passwordHash) {
       return { error: "Email or password is incorrect." };
     }
 
@@ -154,12 +165,20 @@ export async function updateAccount({ name, currentPassword, newPassword }: { na
   if (name !== undefined && (name.trim().length < 2 || name.trim().length > 80)) return { error: "Name must be between 2 and 80 characters.", status: 400 };
   if (newPassword !== undefined && (newPassword.length < 8 || newPassword.length > 128)) return { error: "New password must be between 8 and 128 characters.", status: 400 };
   const sessionId = (await cookies()).get(sessionCookieName)?.value;
+  const existingUser = (await readDatabase()).users.find((item) => item.id === currentUser.id);
+  if (!existingUser) return { error: "Sign in again.", status: 401 };
+  let passwordHash: string | undefined;
+  if (newPassword !== undefined) {
+    if (!currentPassword || !await verifyPassword(currentPassword, existingUser.passwordHash)) return { error: "Current password is incorrect.", status: 400 };
+    passwordHash = await hashPassword(newPassword);
+  }
   return updateDatabase((database) => {
     const user = database.users.find((item) => item.id === currentUser.id);
-    if (!user) return { error: "Sign in again.", status: 401 };
+    const session = database.sessions.find((item) => item.id === sessionId && item.userId === currentUser.id);
+    if (!user || !session || isExpired(session)) return { error: "Sign in again.", status: 401 };
     if (newPassword !== undefined) {
-      if (!currentPassword || !verifyPassword(currentPassword, user.passwordHash)) return { error: "Current password is incorrect.", status: 400 };
-      user.passwordHash = hashPassword(newPassword);
+      if (user.passwordHash !== existingUser.passwordHash) return { error: "Account changed. Sign in again.", status: 401 };
+      user.passwordHash = passwordHash!;
       database.sessions = database.sessions.filter((session) => session.userId !== user.id || session.id === sessionId);
     }
     if (name !== undefined) user.name = name.trim();
@@ -167,32 +186,12 @@ export async function updateAccount({ name, currentPassword, newPassword }: { na
   });
 }
 
-function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const hash = scryptSync(password, salt, 64).toString("hex");
-
-  return `${salt}:${hash}`;
-}
-
-function verifyPassword(password: string, storedValue: string) {
-  const [salt, storedHash] = storedValue.split(":");
-
-  if (!salt || !storedHash) {
-    return false;
-  }
-
-  const hash = scryptSync(password, salt, 64);
-  const storedHashBuffer = Buffer.from(storedHash, "hex");
-
-  return hash.length === storedHashBuffer.length && timingSafeEqual(hash, storedHashBuffer);
-}
-
 function isExpired(session: StoredSession) {
   return new Date(session.expiresAt).getTime() <= Date.now();
 }
 
 function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function toAuthUser(user: StoredUser): AuthUser {

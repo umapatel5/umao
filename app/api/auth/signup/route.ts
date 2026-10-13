@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { signUpUser } from "@/lib/auth/auth-service";
+import { guardRequest, isRecord, readJson, requestError } from "@/lib/security/request-guard";
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { email?: string; name?: string; password?: string };
+  const guard = await guardRequest(request, "signup", 5, false);
+  if (guard.error) return guard.error;
+  let body;
+  try { body = await readJson(request, 4096); } catch (error) { return requestError(error); }
+  if (!isRecord(body) || typeof body.email !== "string" || body.email.length > 254 || typeof body.name !== "string" || body.name.length > 80 || typeof body.password !== "string" || body.password.length > 128) {
+    return NextResponse.json({ error: "Invalid signup details." }, { status: 400 });
+  }
   const result = await signUpUser({
     email: body.email ?? "",
     name: body.name ?? "",
